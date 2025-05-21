@@ -16,7 +16,8 @@
             "name": "AgentApplication",
             "request": "launch",
             "mainClass": "org.cloud.sonic.agent.AgentApplication",
-            "projectName": "sonic-agent"
+            "projectName": "sonic-agent",
+            "vmArgs": "-Dspring.profiles.active=test"
         }
     ]
 }

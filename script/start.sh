@@ -5,7 +5,7 @@
 # export PATH=$JAVA_HOME/bin:$PATH
 
 # 设置JVM参数
-JVM_OPTS="-Xms1500m -Xmx1500m -XX:ReservedCodeCacheSize=256m -XX:InitialCodeCacheSize=256m -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:ConcGCThreads=1 -XX:ParallelGCThreads=2 -XX:ZCollectionInterval=30 -XX:ZAllocationSpikeTolerance=5 -XX:+UnlockDiagnosticVMOptions -XX:-ZProactive -Xlog:gc:./gc-+HeapDumpOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./errorDump.hprof -Dfile.encoding=utf-8"
+JVM_OPTS="-Dspring.profiles.active=test -Xms1500m -Xmx1500m -XX:ReservedCodeCacheSize=256m -XX:InitialCodeCacheSize=256m -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:ConcGCThreads=1 -XX:ParallelGCThreads=2 -XX:ZCollectionInterval=30 -XX:ZAllocationSpikeTolerance=5 -XX:+UnlockDiagnosticVMOptions -XX:-ZProactive -Xlog:gc:./gc-+HeapDumpOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./errorDump.hprof -Dfile.encoding=utf-8"
 
 # 设置要运行的jar文件
 JAR_FILE="sonic-agent-windows-x86_64.jar"

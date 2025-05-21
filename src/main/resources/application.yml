@@ -4,7 +4,7 @@ spring:
     name: @project.artifactId@
     des: "Agent of Sonic Cloud Real Machine Platform"
   profiles:
-    active: @project.artifactId@
+    active: dev
 
 sonic:
   saa: 2.0.8

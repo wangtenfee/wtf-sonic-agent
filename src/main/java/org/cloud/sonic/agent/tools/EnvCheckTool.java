@@ -17,12 +17,6 @@
  */
 package org.cloud.sonic.agent.tools;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +25,12 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * 检查环境
@@ -48,6 +48,9 @@ public class EnvCheckTool {
     public static String sasPrintVersion = "unknown";
     public static String sibPrintVersion = "unknown";
     public static String sgmPrintVersion = "unknown";
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     static {
         system = System.getProperty("os.name").toLowerCase();
@@ -91,10 +94,12 @@ public class EnvCheckTool {
     public void checkConfigFiles() {
         String type = "Check config folders";
         printChecking(type);
-        File config = new File("config/application-sonic-agent.yml");
+        File config = new File(
+                "config/application" + (activeProfile == null ? "" : ("-" + activeProfile)) + ".yml");
         if (system.contains("linux") || system.contains("mac")) {
             try {
-                Runtime.getRuntime().exec(new String[]{"sh", "-c", String.format("chmod -R 777 %s", new File("").getAbsolutePath())});
+                Runtime.getRuntime().exec(
+                        new String[] { "sh", "-c", String.format("chmod -R 777 %s", new File("").getAbsolutePath()) });
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -103,7 +108,8 @@ public class EnvCheckTool {
             printPass(type);
         } else {
             printFail(type);
-            throw new RuntimeException("Missing file! Please ensure that `config` (containing application-sonic-agent.yml) folders in the current directory");
+            throw new RuntimeException(
+                    "Missing file! Please ensure that `config` (containing application-sonic-agent.yml) folders in the current directory");
         }
     }
 
@@ -136,10 +142,12 @@ public class EnvCheckTool {
             adb.setExecutable(true);
             adb.setWritable(true);
             adb.setReadable(true);
-            List<String> ver = ProcessCommandTool.getProcessLocalCommand(String.format("\"%s\" version", adb.getAbsolutePath()));
+            List<String> ver = ProcessCommandTool
+                    .getProcessLocalCommand(String.format("\"%s\" version", adb.getAbsolutePath()));
             if (ver.size() == 0) {
                 printFail(type);
-                throw new RuntimeException("Can not use adb! Please ensure that `adb` command useful!" + (system.toUpperCase(Locale.ROOT).contains("MAC") ? " You can see " + HELP_URL + " ." : ""));
+                throw new RuntimeException("Can not use adb! Please ensure that `adb` command useful!"
+                        + (system.toUpperCase(Locale.ROOT).contains("MAC") ? " You can see " + HELP_URL + " ." : ""));
             } else {
                 adbVersion = ver.get(0);
                 printPass(type);
@@ -147,7 +155,8 @@ public class EnvCheckTool {
             }
         } else {
             printFail(type);
-            throw new RuntimeException("Missing file! Please ensure that `adb` command useful or `plugins` folders (containing adb) in the current directory");
+            throw new RuntimeException(
+                    "Missing file! Please ensure that `adb` command useful or `plugins` folders (containing adb) in the current directory");
         }
     }
 
@@ -163,18 +172,23 @@ public class EnvCheckTool {
             sasBinary.setExecutable(true);
             sasBinary.setWritable(true);
             sasBinary.setReadable(true);
-            List<String> ver = ProcessCommandTool.getProcessLocalCommand(String.format("\"%s\" version", sasBinary.getAbsolutePath()));
+            List<String> ver = ProcessCommandTool
+                    .getProcessLocalCommand(String.format("\"%s\" version", sasBinary.getAbsolutePath()));
             sasPrintVersion = (ver.size() == 0 ? "null" : ver.get(0));
             if (ver.size() == 0 || !BytesTool.versionCheck(sasVersion, ver.get(0))) {
                 printFail(type);
-                throw new RuntimeException(String.format("Start sonic-android-supply failed! Please check sonic-android-supply version or use [chmod -R 777 %s]. if still failed, you can try with [sudo]%s", new File("plugins").getAbsolutePath(), (system.toUpperCase(Locale.ROOT).contains("MAC") ? " or you can see " + HELP_URL : "")));
+                throw new RuntimeException(String.format(
+                        "Start sonic-android-supply failed! Please check sonic-android-supply version or use [chmod -R 777 %s]. if still failed, you can try with [sudo]%s",
+                        new File("plugins").getAbsolutePath(),
+                        (system.toUpperCase(Locale.ROOT).contains("MAC") ? " or you can see " + HELP_URL : "")));
             } else {
                 printPass(type);
                 return true;
             }
         } else {
             printFail(type);
-            throw new RuntimeException("Missing file! Please ensure that `plugins` folders (containing sonic-android-supply) in the current directory");
+            throw new RuntimeException(
+                    "Missing file! Please ensure that `plugins` folders (containing sonic-android-supply) in the current directory");
         }
     }
 
@@ -190,18 +204,23 @@ public class EnvCheckTool {
             sibBinary.setExecutable(true);
             sibBinary.setWritable(true);
             sibBinary.setReadable(true);
-            List<String> ver = ProcessCommandTool.getProcessLocalCommand(String.format("\"%s\" version", sibBinary.getAbsolutePath()));
+            List<String> ver = ProcessCommandTool
+                    .getProcessLocalCommand(String.format("\"%s\" version", sibBinary.getAbsolutePath()));
             sibPrintVersion = (ver.size() == 0 ? "null" : ver.get(0));
             if (ver.size() == 0 || !BytesTool.versionCheck(sibVersion, ver.get(0))) {
                 printFail(type);
-                throw new RuntimeException(String.format("Start sonic-ios-bridge failed! Please check sib's version or use [chmod -R 777 %s]. if still failed, you can try with [sudo]%s", new File("plugins").getAbsolutePath(), (system.toUpperCase(Locale.ROOT).contains("MAC") ? " or you can see " + HELP_URL : "")));
+                throw new RuntimeException(String.format(
+                        "Start sonic-ios-bridge failed! Please check sib's version or use [chmod -R 777 %s]. if still failed, you can try with [sudo]%s",
+                        new File("plugins").getAbsolutePath(),
+                        (system.toUpperCase(Locale.ROOT).contains("MAC") ? " or you can see " + HELP_URL : "")));
             } else {
                 printPass(type);
                 return true;
             }
         } else {
             printFail(type);
-            throw new RuntimeException("Missing file! Please ensure that `plugins` folders (containing sonic-ios-bridge) in the current directory");
+            throw new RuntimeException(
+                    "Missing file! Please ensure that `plugins` folders (containing sonic-ios-bridge) in the current directory");
         }
     }
 
@@ -217,18 +236,24 @@ public class EnvCheckTool {
             sgmBinary.setExecutable(true);
             sgmBinary.setWritable(true);
             sgmBinary.setReadable(true);
-            List<String> ver = ProcessCommandTool.getProcessLocalCommand(String.format("\"%s\" -version", sgmBinary.getAbsolutePath()));
+            List<String> ver = ProcessCommandTool
+                    .getProcessLocalCommand(String.format("\"%s\" -version", sgmBinary.getAbsolutePath()));
             sgmPrintVersion = (ver.size() == 0 ? "null" : ver.get(0));
-            if (ver.size() == 0 || !BytesTool.versionCheck(sgmVersion, ver.get(0).replace("sonic-go-mitmproxy:", "").trim())) {
+            if (ver.size() == 0
+                    || !BytesTool.versionCheck(sgmVersion, ver.get(0).replace("sonic-go-mitmproxy:", "").trim())) {
                 printFail(type);
-                throw new RuntimeException(String.format("Start sonic-go-mitmproxy failed! Please check sonic-go-mitmproxy version or use [chmod -R 777 %s]. if still failed, you can try with [sudo]%s", new File("plugins").getAbsolutePath(), (system.toUpperCase(Locale.ROOT).contains("MAC") ? " or you can see " + HELP_URL : "")));
+                throw new RuntimeException(String.format(
+                        "Start sonic-go-mitmproxy failed! Please check sonic-go-mitmproxy version or use [chmod -R 777 %s]. if still failed, you can try with [sudo]%s",
+                        new File("plugins").getAbsolutePath(),
+                        (system.toUpperCase(Locale.ROOT).contains("MAC") ? " or you can see " + HELP_URL : "")));
             } else {
                 printPass(type);
                 return true;
             }
         } else {
             printFail(type);
-            throw new RuntimeException("Missing file! Please ensure that `plugins` folders (containing sonic-go-mitmproxy) in the current directory");
+            throw new RuntimeException(
+                    "Missing file! Please ensure that `plugins` folders (containing sonic-go-mitmproxy) in the current directory");
         }
     }
 
@@ -243,7 +268,8 @@ public class EnvCheckTool {
             return true;
         } else {
             printFail(type);
-            throw new RuntimeException("Missing file! Please ensure that `plugins` folders (containing `sonic-android-apk.apk` `sonic-appium-uiautomator2-server.apk` `sonic-appium-uiautomator2-server-test.apk`) in the current directory");
+            throw new RuntimeException(
+                    "Missing file! Please ensure that `plugins` folders (containing `sonic-android-apk.apk` `sonic-appium-uiautomator2-server.apk` `sonic-appium-uiautomator2-server-test.apk`) in the current directory");
         }
     }
 
