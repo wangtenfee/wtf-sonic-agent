@@ -17,13 +17,11 @@
  */
 package org.cloud.sonic.agent.common.enums;
 
-import java.io.Serializable;
-
 /**
  * @author JayWenStar
  * @date 2022/3/13 1:49 下午
  */
-public enum ConditionEnum implements SonicEnum<Integer>, Serializable {
+public enum ConditionEnum implements SonicEnum<Integer> {
 
     /**
      * 非条件

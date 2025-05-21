@@ -128,6 +128,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            if (listenProcess == null) {
+                logger.error("Failed to start listen process");
+                return;
+            }
             InputStreamReader inputStreamReader = new InputStreamReader(listenProcess.getInputStream());
             BufferedReader stdInput = new BufferedReader(inputStreamReader);
             String s;

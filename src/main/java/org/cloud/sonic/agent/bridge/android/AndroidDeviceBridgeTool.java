@@ -936,7 +936,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     String driverList = restTemplate.exchange(
                             String.format("https://registry.npmmirror.com/-/binary/chromedriver/%s/",
                                     ChromeDriverMap.getMap().get(majorChromeVersion)),
-                            HttpMethod.GET, new HttpEntity(headers), String.class).getBody();
+                            HttpMethod.GET, new HttpEntity<>(headers), String.class).getBody();
                     boolean findM1ChromeDriver = false;
                     for (Object obj : JSONArray.parseArray(driverList)) {
                         JSONObject jsonObject = JSONObject.parseObject(obj.toString());
@@ -1006,7 +1006,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                 r.put("port", port);
                 try {
                     ResponseEntity<LinkedHashMap> infoEntity = restTemplate.exchange(
-                            "http://localhost:" + port + "/json/version", HttpMethod.GET, new HttpEntity(headers),
+                            "http://localhost:" + port + "/json/version", HttpMethod.GET, new HttpEntity<>(headers),
                             LinkedHashMap.class);
                     if (infoEntity.getStatusCode() == HttpStatus.OK) {
                         r.put("version", infoEntity.getBody().get("Browser"));
@@ -1017,7 +1017,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                 }
                 try {
                     ResponseEntity<JSONArray> responseEntity = restTemplate.exchange(
-                            "http://localhost:" + port + "/json/list", HttpMethod.GET, new HttpEntity(headers),
+                            "http://localhost:" + port + "/json/list", HttpMethod.GET, new HttpEntity<>(headers),
                             JSONArray.class);
                     if (responseEntity.getStatusCode() == HttpStatus.OK) {
                         List<JSONObject> child = new ArrayList<>();
