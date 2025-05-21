@@ -17,8 +17,12 @@
  */
 package org.cloud.sonic.agent.tests;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import static org.cloud.sonic.agent.tests.SuiteListener.runningTestsMap;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
@@ -29,11 +33,8 @@ import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.cloud.sonic.agent.tests.SuiteListener.runningTestsMap;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author ZhouYiXun
@@ -49,8 +50,9 @@ public class AndroidTests {
         List<JSONObject> dataProvider = new ArrayList<>();
         for (JSONObject iDevice : dataInfo.getJSONArray("device").toJavaList(JSONObject.class)) {
             String udId = iDevice.getString("udId");
-            if (AndroidDeviceBridgeTool.getIDeviceByUdId(udId) == null || !AndroidDeviceBridgeTool.getIDeviceByUdId(udId)
-                    .getState().toString().equals("ONLINE")) {
+            if (AndroidDeviceBridgeTool.getIDeviceByUdId(udId) == null
+                    || !AndroidDeviceBridgeTool.getIDeviceByUdId(udId)
+                            .getState().toString().equals("ONLINE")) {
                 continue;
             }
             JSONObject deviceTestData = new JSONObject();
@@ -64,7 +66,7 @@ public class AndroidTests {
         }
         Object[][] testDataProvider = new Object[dataProvider.size()][];
         for (int i = 0; i < dataProvider.size(); i++) {
-            testDataProvider[i] = new Object[]{dataProvider.get(i)};
+            testDataProvider[i] = new Object[] { dataProvider.get(i) };
         }
         return testDataProvider;
     }
@@ -85,7 +87,8 @@ public class AndroidTests {
 
         // 启动任务
         AndroidTestTaskBootThread bootThread = new AndroidTestTaskBootThread(jsonObject, androidStepHandler);
-        // runningTestsMap的key在rid的基础上再加上udid，避免分发到设备上的用例不均，先执行的完的用例remove rid，导致用例执行不完全的问题
+        // runningTestsMap的key在rid的基础上再加上udid，避免分发到设备上的用例不均，先执行的完的用例remove
+        // rid，导致用例执行不完全的问题
         if (!runningTestsMap.containsKey(rid + "-" + udId)) {
             logger.info("Task【{}】interrupted, skip.", bootThread.getName());
             return;

@@ -17,20 +17,22 @@
  */
 package org.cloud.sonic.agent.tests.android.scrcpy;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
-import jakarta.websocket.Session;
-import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.cloud.sonic.agent.tools.BytesTool.sendText;
 
 import java.io.File;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.cloud.sonic.agent.tools.BytesTool.sendText;
+import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+
+import jakarta.websocket.Session;
 
 /**
  * 启动scrcpy等服务的线程
@@ -53,7 +55,8 @@ public class ScrcpyLocalThread extends Thread {
 
     private Semaphore isFinish = new Semaphore(0);
 
-    public ScrcpyLocalThread(IDevice iDevice, int finalC, Session session, AndroidTestTaskBootThread androidTestTaskBootThread) {
+    public ScrcpyLocalThread(IDevice iDevice, int finalC, Session session,
+            AndroidTestTaskBootThread androidTestTaskBootThread) {
         this.iDevice = iDevice;
         this.finalC = finalC;
         this.session = session;
@@ -98,7 +101,8 @@ public class ScrcpyLocalThread extends Thread {
         }
         AtomicBoolean isRetry = new AtomicBoolean(false);
         try {
-            iDevice.executeShellCommand("CLASSPATH=/data/local/tmp/sonic-android-scrcpy.jar app_process / com.genymobile.scrcpy.Server 1.23 log_level=info max_size=0 max_fps=60 tunnel_forward=true send_frame_meta=false control=false show_touches=false stay_awake=false power_off_on_close=false clipboard_autosync=false",
+            iDevice.executeShellCommand(
+                    "CLASSPATH=/data/local/tmp/sonic-android-scrcpy.jar app_process / com.genymobile.scrcpy.Server 1.23 log_level=info max_size=0 max_fps=60 tunnel_forward=true send_frame_meta=false control=false show_touches=false stay_awake=false power_off_on_close=false clipboard_autosync=false",
                     new IShellOutputReceiver() {
                         @Override
                         public void addOutput(byte[] bytes, int i, int i1) {

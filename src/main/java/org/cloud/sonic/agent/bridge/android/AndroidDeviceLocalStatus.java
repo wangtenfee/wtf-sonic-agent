@@ -17,10 +17,11 @@
  */
 package org.cloud.sonic.agent.bridge.android;
 
-import com.alibaba.fastjson.JSONObject;
 import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
 import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
 import org.cloud.sonic.agent.transport.TransportWorker;
+
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author ZhouYiXun

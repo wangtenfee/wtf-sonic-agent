@@ -17,17 +17,19 @@
  */
 package org.cloud.sonic.agent.tests.android.minicap;
 
-import com.alibaba.fastjson.JSONObject;
-import jakarta.websocket.Session;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import org.cloud.sonic.agent.tools.BytesTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
+import com.alibaba.fastjson.JSONObject;
+
+import jakarta.websocket.Session;
 
 /**
  * 视频流输出线程
@@ -63,8 +65,7 @@ public class MiniCapOutputSocketThread extends Thread {
             AtomicReference<String[]> banner,
             AtomicReference<List<byte[]>> imgList,
             Session session,
-            String pic
-    ) {
+            String pic) {
         this.sendImg = sendImg;
         this.banner = banner;
         this.imgList = imgList;
@@ -100,9 +101,9 @@ public class MiniCapOutputSocketThread extends Thread {
                 return;
             }
             int len = buffer.length;
-            for (int cursor = 0; cursor < len; ) {
+            for (int cursor = 0; cursor < len;) {
                 int byte10 = buffer[cursor] & 0xff;
-                if (readBannerBytes < bannerLength) {//第一次进来读取头部信息
+                if (readBannerBytes < bannerLength) {// 第一次进来读取头部信息
                     switch (readBannerBytes) {
                         case 0:
                             // version
@@ -163,7 +164,7 @@ public class MiniCapOutputSocketThread extends Thread {
                             BytesTool.sendText(session, size.toJSONString());
                         }
                     }
-                } else if (readFrameBytes < 4) {//读取并设置图片的大小
+                } else if (readFrameBytes < 4) {// 读取并设置图片的大小
                     frameBodyLength += (byte10 << (readFrameBytes * 8));
                     cursor += 1;
                     readFrameBytes += 1;

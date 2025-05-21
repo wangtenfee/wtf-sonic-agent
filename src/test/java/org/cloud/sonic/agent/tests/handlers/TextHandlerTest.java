@@ -1,9 +1,10 @@
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.alibaba.fastjson.JSONObject;
 import org.cloud.sonic.agent.tools.BytesTool;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.alibaba.fastjson.JSONObject;
 
 public class TextHandlerTest {
     @Test

@@ -17,8 +17,9 @@
  */
 package org.cloud.sonic.agent.tools;
 
-import jakarta.annotation.PreDestroy;
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.util.List;
+
 import org.cloud.sonic.agent.common.maps.GlobalProcessMap;
 import org.cloud.sonic.agent.common.maps.IOSProcessMap;
 import org.cloud.sonic.agent.transport.TransportConnectionThread;
@@ -27,8 +28,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.util.List;
+import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -44,8 +45,7 @@ public class LaunchTool implements ApplicationRunner {
                 new TransportConnectionThread(),
                 TransportConnectionThread.DELAY,
                 TransportConnectionThread.DELAY,
-                TransportConnectionThread.TIME_UNIT
-        );
+                TransportConnectionThread.TIME_UNIT);
         TransportWorker.readQueue();
         new Thread(() -> {
             File file = new File("plugins/sonic-go-mitmproxy-ca-cert.pem");

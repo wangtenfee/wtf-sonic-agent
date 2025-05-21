@@ -17,18 +17,19 @@
  */
 package org.cloud.sonic.agent.tests.script;
 
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.cloud.sonic.agent.common.interfaces.StepType;
 import org.cloud.sonic.agent.tests.LogUtil;
 import org.cloud.sonic.agent.tests.RunStepThread;
 import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
 import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
 
 public class GroovyScriptImpl implements ScriptRunner {
     @Override

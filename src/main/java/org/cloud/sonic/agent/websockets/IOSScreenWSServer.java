@@ -17,14 +17,14 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.alibaba.fastjson.JSONObject;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import static org.cloud.sonic.agent.tools.BytesTool.sendByte;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ScheduledFuture;
+
 import org.cloud.sonic.agent.bridge.ios.SibTool;
 import org.cloud.sonic.agent.common.config.WsEndpointConfigure;
 import org.cloud.sonic.agent.common.maps.WebSocketSessionMap;
@@ -34,13 +34,15 @@ import org.cloud.sonic.agent.tools.ScheduleTool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.util.concurrent.ScheduledFuture;
+import com.alibaba.fastjson.JSONObject;
 
-import static org.cloud.sonic.agent.tools.BytesTool.sendByte;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -53,7 +55,7 @@ public class IOSScreenWSServer implements IIOSWSServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("key") String secretKey,
-                       @PathParam("udId") String udId, @PathParam("token") String token) throws InterruptedException {
+            @PathParam("udId") String udId, @PathParam("token") String token) throws InterruptedException {
         if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
             log.info("Auth Failed!");
             return;
@@ -115,7 +117,8 @@ public class IOSScreenWSServer implements IIOSWSServer {
             int i = 0;
             while (true) {
                 try {
-                    if ((bufferedImage = mjpegInputStream.readFrameForByteBuffer()) == null) break;
+                    if ((bufferedImage = mjpegInputStream.readFrameForByteBuffer()) == null)
+                        break;
                 } catch (IOException e) {
                     log.info(e.getMessage());
                     break;

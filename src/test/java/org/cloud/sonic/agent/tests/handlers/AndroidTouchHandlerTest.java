@@ -1,8 +1,8 @@
 package org.cloud.sonic.agent.tests.handlers;
 
-import org.junit.Test;
-
 import java.util.function.BiFunction;
+
+import org.junit.Test;
 
 public class AndroidTouchHandlerTest {
 
@@ -20,7 +20,7 @@ public class AndroidTouchHandlerTest {
             _x = directionStatus == 2 ? width - x : x;
             _y = directionStatus == 2 ? height - y : y;
         }
-        return new int[]{_x, _y};
+        return new int[] { _x, _y };
     }
 
     @Test
@@ -32,8 +32,8 @@ public class AndroidTouchHandlerTest {
 
     @Test
     public void test_interpolator() {
-        int[] re1 = {200, 1200};
-        int[] re2 = {200, 300};
+        int[] re1 = { 200, 1200 };
+        int[] re2 = { 200, 300 };
         // 过渡总时间
         int duration = 500;
         // 开始时间
@@ -47,10 +47,10 @@ public class AndroidTouchHandlerTest {
                 System.out.println("[" + re2[0] + "," + re2[1] + "]");
                 break;
             }
-            BiFunction<Integer, Integer, Integer> transitionX = (start, end) ->
-                    (int) (start + (end - start) * timeProgress);
-            BiFunction<Integer, Integer, Integer> transitionY = (start, end) ->
-                    (int) (start + (end - start) * timeProgress); // Y 坐标过渡函数
+            BiFunction<Integer, Integer, Integer> transitionX = (start,
+                    end) -> (int) (start + (end - start) * timeProgress);
+            BiFunction<Integer, Integer, Integer> transitionY = (start,
+                    end) -> (int) (start + (end - start) * timeProgress); // Y 坐标过渡函数
 
             int currentX = transitionX.apply(re1[0], re2[0]); // 当前 X 坐标
             int currentY = transitionY.apply(re1[1], re2[1]); // 当前 Y 坐标

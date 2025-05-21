@@ -17,12 +17,7 @@
  */
 package org.cloud.sonic.agent.tests;
 
-import org.cloud.sonic.agent.common.interfaces.PlatformType;
-import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
-import org.cloud.sonic.agent.tests.ios.IOSTestTaskBootThread;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
+import static org.cloud.sonic.agent.tests.SuiteListener.runningTestsMap;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,7 +28,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static org.cloud.sonic.agent.tests.SuiteListener.runningTestsMap;
+import org.cloud.sonic.agent.common.interfaces.PlatformType;
+import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
+import org.cloud.sonic.agent.tests.ios.IOSTestTaskBootThread;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author JayWenStar
@@ -115,7 +115,6 @@ public class TaskManager {
         }
     }
 
-
     /**
      * 添加boot线程
      *
@@ -126,7 +125,6 @@ public class TaskManager {
         clearTerminatedThread();
         bootThreadsMap.put(key, bootThread);
     }
-
 
     /**
      * 添加child线程（单个）

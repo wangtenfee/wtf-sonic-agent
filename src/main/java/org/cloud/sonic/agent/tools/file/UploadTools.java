@@ -17,8 +17,13 @@
  */
 package org.cloud.sonic.agent.tools.file;
 
-import com.alibaba.fastjson.JSONObject;
-import net.coobird.thumbnailator.Thumbnails;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Calendar;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +35,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Calendar;
-import java.util.UUID;
+import com.alibaba.fastjson.JSONObject;
+
+import net.coobird.thumbnailator.Thumbnails;
 
 /**
  * @author ZhouYiXun
@@ -61,7 +63,7 @@ public class UploadTools {
 
     public static String upload(File uploadFile, String type) {
         File folder = new File("test-output");
-        if (!folder.exists()) {//判断文件目录是否存在
+        if (!folder.exists()) {// 判断文件目录是否存在
             folder.mkdirs();
         }
         File transfer;
@@ -82,8 +84,8 @@ public class UploadTools {
         MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
         param.add("file", resource);
         param.add("type", type);
-        ResponseEntity<JSONObject> responseEntity =
-                restTemplate.postForEntity(baseUrl + "/upload/v2", param, JSONObject.class);
+        ResponseEntity<JSONObject> responseEntity = restTemplate.postForEntity(baseUrl + "/upload/v2", param,
+                JSONObject.class);
         if (responseEntity.getBody().getInteger("code") == 2000) {
             if (uploadFile.exists()) {
                 uploadFile.delete();
@@ -136,7 +138,8 @@ public class UploadTools {
                 param.add("uuid", uuid);
                 param.add("index", i + "");
                 param.add("total", num + "");
-                ResponseEntity<JSONObject> responseEntity = restTemplate.postForEntity(baseUrl + "/upload/recordFiles", param, JSONObject.class);
+                ResponseEntity<JSONObject> responseEntity = restTemplate.postForEntity(baseUrl + "/upload/recordFiles",
+                        param, JSONObject.class);
                 if (responseEntity.getBody().getInteger("code") == 2000) {
                     successNum++;
                 }

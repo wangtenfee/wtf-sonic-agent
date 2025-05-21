@@ -17,7 +17,12 @@
  */
 package org.cloud.sonic.agent.tools.file;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -60,7 +65,8 @@ public class FileTool {
      *
      * @param source         原始的下载临时文件
      * @param version        完整的chrome版本
-     * @param greaterThen114 是否>=115(大于115的场景下，使用的是google官方Chrome for Testing (CfT)下载路径)
+     * @param greaterThen114 是否>=115(大于115的场景下，使用的是google官方Chrome for Testing
+     *                       (CfT)下载路径)
      * @param systemName     系统类型(大于115的场景下，判断产物文件会使用到)
      * @return chromeDriver文件
      */
@@ -83,8 +89,7 @@ public class FileTool {
                 ZipEntry entry = (ZipEntry) emu.nextElement();
                 BufferedInputStream bis = new BufferedInputStream(zipFile.getInputStream(entry));
                 // >=115之后的版本，entry.name字段有变更，带上了系统类型
-                final String targetFileName = greaterThen114 ?
-                        String.format("chromedriver-%s/%s", systemName, tail)
+                final String targetFileName = greaterThen114 ? String.format("chromedriver-%s/%s", systemName, tail)
                         : tail;
                 if (entry.getName().equals(targetFileName)) {
                     String fileName = version + "_" + tail;

@@ -17,7 +17,9 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.alibaba.fastjson.JSONObject;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.cloud.sonic.agent.common.enums.ConditionEnum;
 import org.cloud.sonic.agent.common.enums.SonicEnum;
 import org.cloud.sonic.agent.common.models.HandleContext;
@@ -31,8 +33,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author JayWenStar
@@ -41,13 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class StepHandlers implements ApplicationListener<ContextRefreshedEvent> {
 
-
     private final Logger logger = LoggerFactory.getLogger(StepHandlers.class);
 
-    private final ConcurrentHashMap<ConditionEnum, StepHandler> stepHandlers =
-            new ConcurrentHashMap<>(8);
+    private final ConcurrentHashMap<ConditionEnum, StepHandler> stepHandlers = new ConcurrentHashMap<>(8);
 
-    public HandleContext runStep(JSONObject stepJSON, HandleContext handleContext, RunStepThread thread) throws Throwable {
+    public HandleContext runStep(JSONObject stepJSON, HandleContext handleContext, RunStepThread thread)
+            throws Throwable {
         JSONObject step = stepJSON.getJSONObject("step");
         // 兼容childSteps
         if (CollectionUtils.isEmpty(step)) {

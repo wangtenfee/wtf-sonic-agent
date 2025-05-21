@@ -17,14 +17,19 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
-import jakarta.websocket.*;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceThreadPool;
 import org.cloud.sonic.agent.common.config.WsEndpointConfigure;
@@ -36,14 +41,19 @@ import org.cloud.sonic.agent.tools.ScheduleTool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author ZhouYiXun
@@ -64,7 +74,7 @@ public class AndroidTerminalWSServer implements IAndroidWSServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("key") String secretKey,
-                       @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
+            @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
         if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
             log.info("Auth Failed!");
             return;
@@ -223,26 +233,26 @@ public class AndroidTerminalWSServer implements IAndroidWSServer {
                     try {
                         udIdMap.get(session).executeShellCommand("logcat *:"
                                 + msg.getString("level") +
-                                (msg.getString("filter").length() > 0 ?
-                                        " | grep " + msg.getString("filter") : ""), new IShellOutputReceiver() {
-                            @Override
-                            public void addOutput(byte[] bytes, int i, int i1) {
-                                String res = new String(bytes, i, i1);
-                                JSONObject resp = new JSONObject();
-                                resp.put("msg", "logcatResp");
-                                resp.put("detail", res);
-                                BytesTool.sendText(session, resp.toJSONString());
-                            }
+                                (msg.getString("filter").length() > 0 ? " | grep " + msg.getString("filter") : ""),
+                                new IShellOutputReceiver() {
+                                    @Override
+                                    public void addOutput(byte[] bytes, int i, int i1) {
+                                        String res = new String(bytes, i, i1);
+                                        JSONObject resp = new JSONObject();
+                                        resp.put("msg", "logcatResp");
+                                        resp.put("detail", res);
+                                        BytesTool.sendText(session, resp.toJSONString());
+                                    }
 
-                            @Override
-                            public void flush() {
-                            }
+                                    @Override
+                                    public void flush() {
+                                    }
 
-                            @Override
-                            public boolean isCancelled() {
-                                return false;
-                            }
-                        }, 0, TimeUnit.MILLISECONDS);
+                                    @Override
+                                    public boolean isCancelled() {
+                                        return false;
+                                    }
+                                }, 0, TimeUnit.MILLISECONDS);
                     } catch (Throwable e) {
                         return;
                     }
@@ -328,7 +338,8 @@ public class AndroidTerminalWSServer implements IAndroidWSServer {
                 String s;
                 while (managerSocket.isConnected() && !Thread.interrupted()) {
                     try {
-                        if ((s = br.readLine()) == null) break;
+                        if ((s = br.readLine()) == null)
+                            break;
                     } catch (IOException e) {
                         e.printStackTrace();
                         break;

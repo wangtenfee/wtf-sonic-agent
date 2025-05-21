@@ -17,14 +17,13 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.config.WsEndpointConfigure;
 import org.cloud.sonic.agent.common.maps.AndroidAPKMap;
@@ -34,12 +33,15 @@ import org.cloud.sonic.agent.tools.PortTool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.android.ddmlib.IDevice;
+
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -50,7 +52,8 @@ public class AudioWSServer implements IAndroidWSServer {
     private Map<Session, Thread> audioMap = new ConcurrentHashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("key") String secretKey, @PathParam("udId") String udId) throws Exception {
+    public void onOpen(Session session, @PathParam("key") String secretKey, @PathParam("udId") String udId)
+            throws Exception {
         if (secretKey.length() == 0 || (!secretKey.equals(key))) {
             log.info("Auth Failed!");
             return;
@@ -84,7 +87,8 @@ public class AudioWSServer implements IAndroidWSServer {
         IDevice iDevice = udIdMap.get(session);
         AndroidDeviceBridgeTool.executeCommand(iDevice, "appops set org.cloud.sonic.android PROJECT_MEDIA allow");
         AndroidDeviceBridgeTool.executeCommand(iDevice, "appops set org.cloud.sonic.android RECORD_AUDIO allow");
-        AndroidDeviceBridgeTool.executeCommand(iDevice, "am start -n org.cloud.sonic.android/.plugin.audioPlugin.AudioActivity");
+        AndroidDeviceBridgeTool.executeCommand(iDevice,
+                "am start -n org.cloud.sonic.android/.plugin.audioPlugin.AudioActivity");
         int wait = 0;
         String has = AndroidDeviceBridgeTool.executeCommand(iDevice, "cat /proc/net/unix");
         while (!has.contains("sonicaudioservice")) {
@@ -169,19 +173,20 @@ public class AudioWSServer implements IAndroidWSServer {
         audioMap.remove(session);
     }
 
-//    @OnMessage
-//    public void onMessage(String message, Session session) {
-//        JSONObject msg = JSON.parseObject(message);
-//        log.info("{} send: {}",session.getUserProperties().get("id").toString(), msg);
-//        switch (msg.getString("type")) {
-//            case "start":
-//                startAudio(session);
-//                break;
-//            case "stop":
-//                stopAudio(session);
-//                break;
-//        }
-//    }
+    // @OnMessage
+    // public void onMessage(String message, Session session) {
+    // JSONObject msg = JSON.parseObject(message);
+    // log.info("{} send: {}",session.getUserProperties().get("id").toString(),
+    // msg);
+    // switch (msg.getString("type")) {
+    // case "start":
+    // startAudio(session);
+    // break;
+    // case "stop":
+    // stopAudio(session);
+    // break;
+    // }
+    // }
 
     @OnClose
     public void onClose(Session session) {

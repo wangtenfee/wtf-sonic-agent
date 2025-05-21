@@ -17,20 +17,22 @@
  */
 package org.cloud.sonic.agent.tests.android.minicap;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
-import jakarta.websocket.Session;
+import java.io.File;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import org.cloud.sonic.agent.tools.BytesTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+
+import jakarta.websocket.Session;
 
 /**
  * 启动minicap等服务的线程
@@ -61,9 +63,8 @@ public class MiniCapLocalThread extends Thread {
 
     private Semaphore isFinish = new Semaphore(0);
 
-
     public MiniCapLocalThread(IDevice iDevice, String pic, int finalC, Session session,
-                              AndroidTestTaskBootThread androidTestTaskBootThread) {
+            AndroidTestTaskBootThread androidTestTaskBootThread) {
         this.iDevice = iDevice;
         this.pic = pic;
         this.finalC = finalC;
@@ -105,13 +106,13 @@ public class MiniCapLocalThread extends Thread {
 
     public boolean runMiniCap(String type) {
         AtomicBoolean isSuc = new AtomicBoolean(true);
-        //先删除原有路径下的文件，防止上次出错后停止，再次打开会报错的情况
+        // 先删除原有路径下的文件，防止上次出错后停止，再次打开会报错的情况
         AndroidDeviceBridgeTool.executeCommand(iDevice, "rm -rf /data/local/tmp/minicap*");
-        //获取cpu信息
+        // 获取cpu信息
         String cpuAbi = AndroidDeviceBridgeTool.getProperties(iDevice, "ro.product.cpu.abi");
-        //获取安卓sdk版本
+        // 获取安卓sdk版本
         String androidSdkVersion = AndroidDeviceBridgeTool.getProperties(iDevice, "ro.build.version.sdk");
-        //查找对应文件并推送
+        // 查找对应文件并推送
         String miniCapFileName = AndroidDeviceBridgeTool.matchMiniCapFile(androidSdkVersion);
         File miniCapFile = new File("mini" + File.separator + cpuAbi + File.separator + miniCapFileName);
         File miniCapSoFile = new File("mini/minicap-shared/aosp/" + type + "/android-" + androidSdkVersion
@@ -125,7 +126,7 @@ public class MiniCapLocalThread extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //给文件权限
+        // 给文件权限
         AndroidDeviceBridgeTool.executeCommand(iDevice, "chmod 777 /data/local/tmp/" + miniCapFileName);
         String size = AndroidDeviceBridgeTool.getScreenSize(iDevice);
         String vSize;
@@ -137,36 +138,37 @@ public class MiniCapLocalThread extends Thread {
             vSize = "800x800";
         }
         try {
-            //开始启动
-            iDevice.executeShellCommand(String.format("LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/%s -Q %d -S -P %s@%s/%d",
-                    miniCapFileName, q, size, vSize, finalC), new IShellOutputReceiver() {
-                @Override
-                public void addOutput(byte[] bytes, int i, int i1) {
-                    String res = new String(bytes, i, i1);
-                    log.info(res);
-                    if (res.contains("Server start")) {
-                        isFinish.release();
-                    }
-                    if (res.contains("Vector<> have different types")
-                            || res.contains("CANNOT LINK EXECUTABLE")) {
-                        log.info(iDevice.getSerialNumber() + "设备不兼容" + type + "投屏！");
-                        isSuc.set(false);
-                    }
-                }
+            // 开始启动
+            iDevice.executeShellCommand(
+                    String.format("LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/%s -Q %d -S -P %s@%s/%d",
+                            miniCapFileName, q, size, vSize, finalC),
+                    new IShellOutputReceiver() {
+                        @Override
+                        public void addOutput(byte[] bytes, int i, int i1) {
+                            String res = new String(bytes, i, i1);
+                            log.info(res);
+                            if (res.contains("Server start")) {
+                                isFinish.release();
+                            }
+                            if (res.contains("Vector<> have different types")
+                                    || res.contains("CANNOT LINK EXECUTABLE")) {
+                                log.info(iDevice.getSerialNumber() + "设备不兼容" + type + "投屏！");
+                                isSuc.set(false);
+                            }
+                        }
 
-                @Override
-                public void flush() {
-                }
+                        @Override
+                        public void flush() {
+                        }
 
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-            }, 0, TimeUnit.MILLISECONDS);
+                        @Override
+                        public boolean isCancelled() {
+                            return false;
+                        }
+                    }, 0, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             isSuc.set(false);
-            log.info("{} minicap stopped."
-                    , iDevice.getSerialNumber());
+            log.info("{} minicap stopped.", iDevice.getSerialNumber());
             log.error(e.getMessage());
         }
         return isSuc.get();

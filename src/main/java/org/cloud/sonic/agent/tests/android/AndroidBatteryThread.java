@@ -17,18 +17,20 @@
  */
 package org.cloud.sonic.agent.tests.android;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.maps.DevicesBatteryMap;
 import org.cloud.sonic.agent.tools.BytesTool;
 import org.cloud.sonic.agent.transport.TransportWorker;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Eason
@@ -73,11 +75,11 @@ public class AndroidBatteryThread implements Runnable {
                 jsonObject.put("level", level);
                 jsonObject.put("vol", vol);
                 detail.add(jsonObject);
-                //control
+                // control
                 if (tem >= BytesTool.highTemp * 10) {
                     Integer times = DevicesBatteryMap.getTempMap().get(iDevice.getSerialNumber());
                     if (times == null) {
-                        //Send Error Msg
+                        // Send Error Msg
                         JSONObject errCall = new JSONObject();
                         errCall.put("msg", "errCall");
                         errCall.put("udId", iDevice.getSerialNumber());
@@ -90,7 +92,7 @@ public class AndroidBatteryThread implements Runnable {
                     }
                     times = DevicesBatteryMap.getTempMap().get(iDevice.getSerialNumber());
                     if (times >= (BytesTool.highTempTime * 2)) {
-                        //Send shutdown Msg
+                        // Send shutdown Msg
                         JSONObject errCall = new JSONObject();
                         errCall.put("msg", "errCall");
                         errCall.put("udId", iDevice.getSerialNumber());

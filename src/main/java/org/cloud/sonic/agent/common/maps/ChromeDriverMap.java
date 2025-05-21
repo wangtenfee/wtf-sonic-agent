@@ -20,7 +20,6 @@ package org.cloud.sonic.agent.common.maps;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * 维护不同版本的chromeDriver的映射表
  * <=114版本，参考http://chromedriver.storage.googleapis.com/index.html

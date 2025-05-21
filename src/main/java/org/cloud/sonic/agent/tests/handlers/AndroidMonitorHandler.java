@@ -17,15 +17,17 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
-import lombok.extern.slf4j.Slf4j;
-import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
-import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
+import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
+
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AndroidMonitorHandler {
@@ -79,12 +81,12 @@ public class AndroidMonitorHandler {
 
         Thread rotationPro = new Thread(() -> {
             try {
-                //开始启动
-                iDevice.executeShellCommand(String.format("CLASSPATH=%s exec app_process /system/bin org.cloud.sonic.android.plugin.SonicPluginMonitorService", path)
-                        , new MonitorOutputReceiver(iDevice, receiver), 0, TimeUnit.MILLISECONDS);
+                // 开始启动
+                iDevice.executeShellCommand(String.format(
+                        "CLASSPATH=%s exec app_process /system/bin org.cloud.sonic.android.plugin.SonicPluginMonitorService",
+                        path), new MonitorOutputReceiver(iDevice, receiver), 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
-                log.info("{} rotation service stopped."
-                        , iDevice.getSerialNumber());
+                log.info("{} rotation service stopped.", iDevice.getSerialNumber());
                 log.error(e.getMessage());
             }
         });

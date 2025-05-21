@@ -17,9 +17,9 @@
  */
 package org.cloud.sonic.agent.common.models;
 
-import org.cloud.sonic.driver.common.models.BaseElement;
-
 import java.util.Iterator;
+
+import org.cloud.sonic.driver.common.models.BaseElement;
 
 /**
  * @author ZhouYiXun

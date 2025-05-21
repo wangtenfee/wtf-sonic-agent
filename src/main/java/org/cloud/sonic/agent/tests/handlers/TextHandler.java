@@ -17,11 +17,11 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.alibaba.fastjson.JSONObject;
-
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Random;
+
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author Eason
@@ -57,7 +57,8 @@ public class TextHandler {
                     if (middle.matches("random\\[\\d-\\d\\]")) {
                         String t = middle.replace("random[", "").replace("]", "");
                         int[] size = Arrays.stream(t.split("-")).mapToInt(Integer::parseInt).toArray();
-                        text = text.replace("{{" + middle + "}}", (int) (Math.random() * (size[1] - size[0] + 1)) + size[0] + "");
+                        text = text.replace("{{" + middle + "}}",
+                                (int) (Math.random() * (size[1] - size[0] + 1)) + size[0] + "");
                     }
                     if (middle.matches("random\\[.+\\|.+\\]")) {
                         String t = middle.replace("random[", "").replace("]", "");

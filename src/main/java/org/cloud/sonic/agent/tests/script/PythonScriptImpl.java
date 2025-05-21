@@ -17,15 +17,19 @@
  */
 package org.cloud.sonic.agent.tests.script;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.cloud.sonic.agent.common.interfaces.StepType;
 import org.cloud.sonic.agent.tests.LogUtil;
 import org.cloud.sonic.agent.tests.RunStepThread;
 import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
 import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
-
-import java.io.*;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public class PythonScriptImpl implements ScriptRunner {
     @Override
@@ -36,8 +40,7 @@ public class PythonScriptImpl implements ScriptRunner {
                 androidStepHandler.getAndroidDriver().getSessionId(),
                 androidStepHandler.getiDevice().getSerialNumber(),
                 androidStepHandler.getGlobalParams().toJSONString(),
-                androidStepHandler.getAndroidDriver().getUiaClient().getRemoteUrl()
-        )) {
+                androidStepHandler.getAndroidDriver().getUiaClient().getRemoteUrl())) {
             throw new RuntimeException("Run script failed");
         }
     }
@@ -50,8 +53,7 @@ public class PythonScriptImpl implements ScriptRunner {
                 iosStepHandler.getIOSDriver().getSessionId(),
                 iosStepHandler.getUdId(),
                 iosStepHandler.getGlobalParams().toJSONString(),
-                iosStepHandler.getIOSDriver().getWdaClient().getRemoteUrl()
-        )) {
+                iosStepHandler.getIOSDriver().getWdaClient().getRemoteUrl())) {
             throw new RuntimeException("Run script failed");
         }
     }

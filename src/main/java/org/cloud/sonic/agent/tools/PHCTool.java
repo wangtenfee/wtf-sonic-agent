@@ -17,13 +17,15 @@
  */
 package org.cloud.sonic.agent.tools;
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import com.alibaba.fastjson.JSONObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -37,7 +39,8 @@ public class PHCTool {
     }
 
     public static void setPosition(int position, String type) {
-        if (!isSupport()) return;
+        if (!isSupport())
+            return;
         log.info("set hub position: {} {}", position, type);
         JSONObject re = new JSONObject();
         re.put("position", position);
@@ -47,8 +50,7 @@ public class PHCTool {
 
     public static boolean isSupport() {
         try {
-            ResponseEntity<String> responseEntity =
-                    restTemplate.getForEntity(baseUrl + "/ping", String.class);
+            ResponseEntity<String> responseEntity = restTemplate.getForEntity(baseUrl + "/ping", String.class);
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 if ("pong".equals(responseEntity.getBody())) {
                     log.info("hub is ready.");

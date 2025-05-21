@@ -17,19 +17,21 @@
  */
 package org.cloud.sonic.agent.tests.android.minicap;
 
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.Session;
+import static org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE;
+
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.tests.TaskManager;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
+import com.android.ddmlib.IDevice;
 
-import static org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE;
+import jakarta.websocket.Session;
 
 /**
  * @author ZhouYiXun
@@ -45,12 +47,10 @@ public class MiniCapUtil {
             AtomicReference<List<byte[]>> imgList,
             String pic,
             int tor,
-            Session session
-    ) {
+            Session session) {
         // 这里的AndroidTestTaskBootThread仅作为data bean使用，不会启动
         return start(udId, banner, imgList, pic, tor, session, new AndroidTestTaskBootThread().setUdId(udId));
     }
-
 
     public Thread start(
             String udId,
@@ -59,8 +59,7 @@ public class MiniCapUtil {
             String pic,
             int tor,
             Session session,
-            AndroidTestTaskBootThread androidTestTaskBootThread
-    ) {
+            AndroidTestTaskBootThread androidTestTaskBootThread) {
         IDevice iDevice = AndroidDeviceBridgeTool.getIDeviceByUdId(udId);
         String key = androidTestTaskBootThread.formatThreadName(ANDROID_TEST_TASK_BOOT_PRE);
         int s;
@@ -70,7 +69,8 @@ public class MiniCapUtil {
             s = tor;
         }
         // 启动minicap服务
-        MiniCapLocalThread miniCapPro = new MiniCapLocalThread(iDevice, pic, s * 90, session, androidTestTaskBootThread);
+        MiniCapLocalThread miniCapPro = new MiniCapLocalThread(iDevice, pic, s * 90, session,
+                androidTestTaskBootThread);
         TaskManager.startChildThread(key, miniCapPro);
 
         // 等待启动
@@ -90,12 +90,10 @@ public class MiniCapUtil {
 
         // 启动输入流
         MiniCapInputSocketThread sendImg = new MiniCapInputSocketThread(
-                iDevice, new LinkedBlockingQueue<>(), miniCapPro, session
-        );
+                iDevice, new LinkedBlockingQueue<>(), miniCapPro, session);
         // 启动输出流
         MiniCapOutputSocketThread miniCapOutputSocketThread = new MiniCapOutputSocketThread(
-                sendImg, banner, imgList, session, pic
-        );
+                sendImg, banner, imgList, session, pic);
 
         TaskManager.startChildThread(key, sendImg, miniCapOutputSocketThread);
 

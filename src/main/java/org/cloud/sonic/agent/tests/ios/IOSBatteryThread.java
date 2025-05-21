@@ -17,16 +17,18 @@
  */
 package org.cloud.sonic.agent.tests.ios;
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.cloud.sonic.agent.bridge.ios.SibTool;
 import org.cloud.sonic.agent.common.maps.DevicesBatteryMap;
 import org.cloud.sonic.agent.tools.BytesTool;
 import org.cloud.sonic.agent.transport.TransportWorker;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSONObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author JayWenStar, Eason
@@ -72,11 +74,11 @@ public class IOSBatteryThread implements Runnable {
             jsonObject.put("tem", tem);
             jsonObject.put("level", devicesBattery.getInteger("CurrentCapacity"));
             detail.add(jsonObject);
-            //control
+            // control
             if (tem >= BytesTool.highTemp * 10) {
                 Integer times = DevicesBatteryMap.getTempMap().get(udId);
                 if (times == null) {
-                    //Send Error Msg
+                    // Send Error Msg
                     JSONObject errCall = new JSONObject();
                     errCall.put("msg", "errCall");
                     errCall.put("udId", udId);
@@ -89,7 +91,7 @@ public class IOSBatteryThread implements Runnable {
                 }
                 times = DevicesBatteryMap.getTempMap().get(udId);
                 if (times >= (BytesTool.highTempTime * 2)) {
-                    //Send shutdown Msg
+                    // Send shutdown Msg
                     JSONObject errCall = new JSONObject();
                     errCall.put("msg", "errCall");
                     errCall.put("udId", udId);

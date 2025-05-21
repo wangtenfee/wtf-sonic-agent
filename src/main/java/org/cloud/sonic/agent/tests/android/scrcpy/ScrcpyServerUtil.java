@@ -17,17 +17,19 @@
  */
 package org.cloud.sonic.agent.tests.android.scrcpy;
 
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.Session;
+import static org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE;
+
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.tests.TaskManager;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import com.android.ddmlib.IDevice;
 
-import static org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread.ANDROID_TEST_TASK_BOOT_PRE;
+import jakarta.websocket.Session;
 
 public class ScrcpyServerUtil {
     private final Logger logger = LoggerFactory.getLogger(ScrcpyServerUtil.class);
@@ -35,8 +37,7 @@ public class ScrcpyServerUtil {
     public Thread start(
             String udId,
             int tor,
-            Session session
-    ) {
+            Session session) {
         return start(udId, tor, session, new AndroidTestTaskBootThread().setUdId(udId));
     }
 
@@ -44,8 +45,7 @@ public class ScrcpyServerUtil {
             String udId,
             int tor,
             Session session,
-            AndroidTestTaskBootThread androidTestTaskBootThread
-    ) {
+            AndroidTestTaskBootThread androidTestTaskBootThread) {
         IDevice iDevice = AndroidDeviceBridgeTool.getIDeviceByUdId(udId);
         String key = androidTestTaskBootThread.formatThreadName(ANDROID_TEST_TASK_BOOT_PRE);
         int s;
@@ -73,9 +73,11 @@ public class ScrcpyServerUtil {
             }
         }
         // 启动输入流
-        ScrcpyInputSocketThread scrcpyInputSocketThread = new ScrcpyInputSocketThread(iDevice, new LinkedBlockingQueue<>(), scrcpyThread, session);
+        ScrcpyInputSocketThread scrcpyInputSocketThread = new ScrcpyInputSocketThread(iDevice,
+                new LinkedBlockingQueue<>(), scrcpyThread, session);
         // 启动输出流
-        ScrcpyOutputSocketThread scrcpyOutputSocketThread = new ScrcpyOutputSocketThread(scrcpyInputSocketThread, session);
+        ScrcpyOutputSocketThread scrcpyOutputSocketThread = new ScrcpyOutputSocketThread(scrcpyInputSocketThread,
+                session);
         TaskManager.startChildThread(key, scrcpyInputSocketThread, scrcpyOutputSocketThread);
         return scrcpyThread; // server线程
     }

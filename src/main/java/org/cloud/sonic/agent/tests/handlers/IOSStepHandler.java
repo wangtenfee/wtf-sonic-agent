@@ -17,9 +17,22 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.Future;
+
+import javax.imageio.stream.FileImageOutputStream;
+
 import org.cloud.sonic.agent.bridge.ios.IOSDeviceThreadPool;
 import org.cloud.sonic.agent.bridge.ios.SibTool;
 import org.cloud.sonic.agent.common.enums.ConditionEnum;
@@ -60,13 +73,9 @@ import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.springframework.util.CollectionUtils;
 
-import javax.imageio.stream.FileImageOutputStream;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.Future;
-
-import static org.testng.Assert.*;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author ZhouYiXun
@@ -80,7 +89,7 @@ public class IOSStepHandler {
     private JSONObject globalParams = new JSONObject();
     private String udId = "";
     private int status = ResultDetailStatus.PASS;
-    private int[] screenWindowPosition = {0, 0, 0, 0};
+    private int[] screenWindowPosition = { 0, 0, 0, 0 };
     private int pocoPort = 0;
     private int targetPort = 0;
     private String targetPackage = "";
@@ -164,7 +173,7 @@ public class IOSStepHandler {
             }
         } catch (Exception e) {
             log.sendStepLog(StepType.WARN, "测试终止异常！请检查设备连接状态", e.fillInStackTrace().toString());
-            //测试异常
+            // 测试异常
             setResultDetailStatus(ResultDetailStatus.WARN);
         } finally {
             if (IOSProcessMap.getMap().get(udId) != null) {
@@ -190,7 +199,7 @@ public class IOSStepHandler {
 
     public void waitDeviceTimeOut() {
         log.sendStepLog(StepType.ERROR, "等待设备超时！测试跳过！", "");
-        //测试标记为异常
+        // 测试标记为异常
         setResultDetailStatus(ResultDetailStatus.WARN);
     }
 
@@ -218,12 +227,12 @@ public class IOSStepHandler {
         log.sendStatusLog(status);
     }
 
-    //判断有无出错
+    // 判断有无出错
     public int getStatus() {
         return status;
     }
 
-    //调试每次重设状态
+    // 调试每次重设状态
     public void resetResultDetailStatus() {
         status = 1;
     }
@@ -291,40 +300,42 @@ public class IOSStepHandler {
         return elementList;
     }
 
-//    public void startRecord() {
-//        try {
-//            IOSStartScreenRecordingOptions recordOption = new IOSStartScreenRecordingOptions();
-//            recordOption.withTimeLimit(Duration.ofMinutes(30));
-//            recordOption.withVideoQuality(IOSStartScreenRecordingOptions.VideoQuality.LOW);
-//            recordOption.enableForcedRestart();
-//            recordOption.withFps(20);
-//            recordOption.withVideoType("h264");
-//            iosDriver.startRecordingScreen(recordOption);
-//        } catch (Exception e) {
-//            log.sendRecordLog(false, "", "");
-//        }
-//    }
-//
-//    public void stopRecord() {
-//        File recordDir = new File("./test-output/record");
-//        if (!recordDir.exists()) {//判断文件目录是否存在
-//            recordDir.mkdirs();
-//        }
-//        long timeMillis = Calendar.getInstance().getTimeInMillis();
-//        String fileName = timeMillis + "_" + udId.substring(0, 4) + ".mp4";
-//        File uploadFile = new File(recordDir + File.separator + fileName);
-//        try {
-//            synchronized (IOSStepHandler.class) {
-//                FileOutputStream fileOutputStream = new FileOutputStream(uploadFile);
-//                byte[] bytes = Base64Utils.decodeFromString((iosDriver.stopRecordingScreen()));
-//                fileOutputStream.write(bytes);
-//                fileOutputStream.close();
-//            }
-//            log.sendRecordLog(true, fileName, UploadTools.uploadPatchRecord(uploadFile));
-//        } catch (Exception e) {
-//            log.sendRecordLog(false, fileName, "");
-//        }
-//    }
+    // public void startRecord() {
+    // try {
+    // IOSStartScreenRecordingOptions recordOption = new
+    // IOSStartScreenRecordingOptions();
+    // recordOption.withTimeLimit(Duration.ofMinutes(30));
+    // recordOption.withVideoQuality(IOSStartScreenRecordingOptions.VideoQuality.LOW);
+    // recordOption.enableForcedRestart();
+    // recordOption.withFps(20);
+    // recordOption.withVideoType("h264");
+    // iosDriver.startRecordingScreen(recordOption);
+    // } catch (Exception e) {
+    // log.sendRecordLog(false, "", "");
+    // }
+    // }
+    //
+    // public void stopRecord() {
+    // File recordDir = new File("./test-output/record");
+    // if (!recordDir.exists()) {//判断文件目录是否存在
+    // recordDir.mkdirs();
+    // }
+    // long timeMillis = Calendar.getInstance().getTimeInMillis();
+    // String fileName = timeMillis + "_" + udId.substring(0, 4) + ".mp4";
+    // File uploadFile = new File(recordDir + File.separator + fileName);
+    // try {
+    // synchronized (IOSStepHandler.class) {
+    // FileOutputStream fileOutputStream = new FileOutputStream(uploadFile);
+    // byte[] bytes =
+    // Base64Utils.decodeFromString((iosDriver.stopRecordingScreen()));
+    // fileOutputStream.write(bytes);
+    // fileOutputStream.close();
+    // }
+    // log.sendRecordLog(true, fileName, UploadTools.uploadPatchRecord(uploadFile));
+    // } catch (Exception e) {
+    // log.sendRecordLog(false, fileName, "");
+    // }
+    // }
 
     public void install(HandleContext handleContext, String path) {
         handleContext.setStepDes("安装应用");
@@ -470,7 +481,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void sendKeysByActions(HandleContext handleContext, String des, String selector, String pathValue, String keys) {
+    public void sendKeysByActions(HandleContext handleContext, String des, String selector, String pathValue,
+            String keys) {
         keys = TextHandler.replaceTrans(keys, globalParams);
         handleContext.setStepDes("对" + des + "输入内容");
         handleContext.setDetail("对" + selector + ": " + pathValue + " 输入: " + keys);
@@ -485,7 +497,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void getTextAndAssert(HandleContext handleContext, String des, String selector, String pathValue, String expect) {
+    public void getTextAndAssert(HandleContext handleContext, String des, String selector, String pathValue,
+            String expect) {
         try {
             String s = getText(handleContext, des, selector, pathValue);
             if (handleContext.getE() != null) {
@@ -561,7 +574,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void swipe(HandleContext handleContext, String des, String selector, String pathValue, String des2, String selector2, String pathValue2) {
+    public void swipe(HandleContext handleContext, String des, String selector, String pathValue, String des2,
+            String selector2, String pathValue2) {
         try {
             IOSElement webElement = findEle(selector, pathValue);
             IOSElement webElement2 = findEle(selector2, pathValue2);
@@ -577,7 +591,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void swipeByDefinedDirection(HandleContext handleContext, String slideDirection, int distance) throws Exception {
+    public void swipeByDefinedDirection(HandleContext handleContext, String slideDirection, int distance)
+            throws Exception {
         WindowSize size = iosDriver.getWindowSize();
         int width = size.getWidth();
         int height = size.getHeight();
@@ -619,7 +634,9 @@ public class IOSStepHandler {
                 handleContext.setDetail("拖动坐标(" + centerX + "," + centerY + ")到(" + centerX + "," + targetY + ")");
 
             }
-            // The coordinate of the starting point x of left or right sliding is the maximum or minimum value, which is used to solve problems such as too short sliding distance to turn pages.
+            // The coordinate of the starting point x of left or right sliding is the
+            // maximum or minimum value, which is used to solve problems such as too short
+            // sliding distance to turn pages.
             case "left" -> {
                 handleContext.setStepDes("从设备中心位置向左滑动" + distance + "像素");
                 targetX = centerX - distance;
@@ -650,7 +667,8 @@ public class IOSStepHandler {
                 handleContext.setDetail("拖动坐标(" + 0 + "," + centerY + ")到(" + targetX + "," + centerY + ")");
             }
             default ->
-                    throw new Exception("Sliding in this direction is not supported. Only up/down/left/right are supported!");
+                throw new Exception(
+                        "Sliding in this direction is not supported. Only up/down/left/right are supported!");
         }
     }
 
@@ -706,8 +724,8 @@ public class IOSStepHandler {
      * @param expectedCount 期望数量
      * @param elementType   元素的类型
      */
-    public void isExistEleNum(HandleContext handleContext, String des, String selector, String pathValue, String operation
-            , int expectedCount, int elementType) {
+    public void isExistEleNum(HandleContext handleContext, String des, String selector, String pathValue,
+            String operation, int expectedCount, int elementType) {
         handleContext.setStepDes("判断控件 " + des + " 存在的个数");
         List elementList = new ArrayList<>();
         switch (elementType) {
@@ -730,7 +748,8 @@ public class IOSStepHandler {
                 handleContext.setE(new AssertionError("未知的元素类型" + elementType + "，无法断言元素个数"));
                 break;
         }
-        String runDetail = "期望个数：" + operation + " " + expectedCount + "，实际个数：" + " " + (elementList == null ? 0 : elementList.size());
+        String runDetail = "期望个数：" + operation + " " + expectedCount + "，实际个数：" + " "
+                + (elementList == null ? 0 : elementList.size());
         handleContext.setDetail(runDetail);
         AssertUtil assertUtil = new AssertUtil();
         boolean isSuccess = assertUtil.assertElementNum(operation, expectedCount, elementList);
@@ -742,7 +761,7 @@ public class IOSStepHandler {
     }
 
     public void scrollToEle(HandleContext handleContext, String des, String selector, String pathValue, int maxTryTime,
-                            String direction) {
+            String direction) {
         String directionStr = "down".equals(direction) ? "向下" : "向上";
         handleContext.setStepDes(directionStr + "滚动到控件 " + des + " 可见");
 
@@ -782,7 +801,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void getElementAttr(HandleContext handleContext, String des, String selector, String pathValue, String attr, String expect) {
+    public void getElementAttr(HandleContext handleContext, String des, String selector, String pathValue, String attr,
+            String expect) {
         handleContext.setStepDes("验证控件 " + des + " 属性");
         handleContext.setDetail("属性：" + attr + "，期望值：" + expect);
         try {
@@ -799,7 +819,7 @@ public class IOSStepHandler {
     }
 
     public void obtainElementAttr(HandleContext handleContext, String des, String selector, String pathValue,
-                                  String attr, String variable) {
+            String attr, String variable) {
         handleContext.setStepDes("获取控件 " + des + " 属性到变量");
         handleContext.setDetail("目标属性：" + attr + "，目标变量：" + variable);
         try {
@@ -811,7 +831,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void logElementAttr(HandleContext handleContext, String des, String selector, String pathValue, String attr) {
+    public void logElementAttr(HandleContext handleContext, String des, String selector, String pathValue,
+            String attr) {
         handleContext.setStepDes("日志输出控件 " + des + " 属性");
         handleContext.setDetail("目标属性：" + attr);
         List<String> attrs = JSON.parseArray(attr, String.class);
@@ -830,7 +851,8 @@ public class IOSStepHandler {
         log.sendStepLog(StepType.INFO, "", "属性获取结果:" + logs);
     }
 
-    public void logPocoElementAttr(HandleContext handleContext, String des, String selector, String pathValue, String attr) {
+    public void logPocoElementAttr(HandleContext handleContext, String des, String selector, String pathValue,
+            String attr) {
         handleContext.setStepDes("日志输出控件 " + des + " 属性");
         handleContext.setDetail("目标属性：" + attr);
         List<String> attrs = JSON.parseArray(attr, String.class);
@@ -871,7 +893,8 @@ public class IOSStepHandler {
         }
         if (findResult != null) {
             String url = UploadTools.upload(findResult.getFile(), "imageFiles");
-            log.sendStepLog(StepType.INFO, "图片定位到坐标：(" + findResult.getX() + "," + findResult.getY() + ")  耗时：" + findResult.getTime() + " ms",
+            log.sendStepLog(StepType.INFO,
+                    "图片定位到坐标：(" + findResult.getX() + "," + findResult.getY() + ")  耗时：" + findResult.getTime() + " ms",
                     url);
         } else {
             log.sendStepLog(StepType.INFO, "SIFT算法无法定位图片，切换AKAZE算法中...",
@@ -885,7 +908,9 @@ public class IOSStepHandler {
             }
             if (findResult != null) {
                 String url = UploadTools.upload(findResult.getFile(), "imageFiles");
-                log.sendStepLog(StepType.INFO, "图片定位到坐标：(" + findResult.getX() + "," + findResult.getY() + ")  耗时：" + findResult.getTime() + " ms",
+                log.sendStepLog(StepType.INFO,
+                        "图片定位到坐标：(" + findResult.getX() + "," + findResult.getY() + ")  耗时：" + findResult.getTime()
+                                + " ms",
                         url);
             } else {
                 log.sendStepLog(StepType.INFO, "AKAZE算法无法定位图片，切换模版匹配算法中...",
@@ -899,7 +924,9 @@ public class IOSStepHandler {
                 }
                 if (findResult != null) {
                     String url = UploadTools.upload(findResult.getFile(), "imageFiles");
-                    log.sendStepLog(StepType.INFO, "图片定位到坐标：(" + findResult.getX() + "," + findResult.getY() + ")  耗时：" + findResult.getTime() + " ms",
+                    log.sendStepLog(StepType.INFO,
+                            "图片定位到坐标：(" + findResult.getX() + "," + findResult.getY() + ")  耗时：" + findResult.getTime()
+                                    + " ms",
                             url);
                 } else {
                     handleContext.setE(new Exception("图片定位失败！"));
@@ -918,18 +945,17 @@ public class IOSStepHandler {
         }
     }
 
-
     public void readText(HandleContext handleContext, String language, String text) {
-//        TextReader textReader = new TextReader();
-//        String result = textReader.getTessResult(getScreenToLocal(), language);
-//        log.sendStepLog(StepType.INFO, "",
-//                "图像文字识别结果：<br>" + result);
-//        String filter = result.replaceAll(" ", "");
+        // TextReader textReader = new TextReader();
+        // String result = textReader.getTessResult(getScreenToLocal(), language);
+        // log.sendStepLog(StepType.INFO, "",
+        // "图像文字识别结果：<br>" + result);
+        // String filter = result.replaceAll(" ", "");
         handleContext.setStepDes("图像文字识别");
         handleContext.setDetail("（该功能暂时关闭）期望包含文本：" + text);
-//        if (!filter.contains(text)) {
-//            handleDes.setE(new Exception("图像文字识别不通过！"));
-//        }
+        // if (!filter.contains(text)) {
+        // handleDes.setE(new Exception("图像文字识别不通过！"));
+        // }
     }
 
     public File getScreenToLocal() {
@@ -949,7 +975,8 @@ public class IOSStepHandler {
         return output;
     }
 
-    public void checkImage(HandleContext handleContext, String des, String pathValue, double matchThreshold) throws Exception {
+    public void checkImage(HandleContext handleContext, String des, String pathValue, double matchThreshold)
+            throws Exception {
         log.sendStepLog(StepType.INFO, "开始检测" + des + "兼容", "检测与当前设备截图相似度，期望相似度为" + matchThreshold + "%");
         File file = null;
         if (pathValue.startsWith("http")) {
@@ -1089,77 +1116,78 @@ public class IOSStepHandler {
         int finalSystemEvent = systemEvent;
         int finalNavEvent = navEvent;
         Future<?> randomThread = IOSDeviceThreadPool.cachedThreadPool.submit(() -> {
-                    log.sendStepLog(StepType.INFO, "", "随机事件数：" + pctNum +
-                            "<br>目标应用：" + packageName
-                            + "<br>用户操作时延：" + finalSleepTime + " ms"
-                            + "<br>轻触事件权重：" + finalTapEvent
-                            + "<br>长按事件权重：" + finalLongPressEvent
-                            + "<br>滑动事件权重：" + finalSwipeEvent
-                            + "<br>物理按键事件权重：" + finalSystemEvent
-                            + "<br>系统事件权重：" + finalNavEvent
-                    );
-                    openApp(new HandleContext(), packageName);
-                    int totalCount = finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent + finalNavEvent;
-                    for (int i = 0; i < pctNum; i++) {
-                        try {
-                            int random = new Random().nextInt(totalCount);
-                            if (random < finalSystemEvent) {
-                                int key = new Random().nextInt(3);
-                                SystemButton keyType = switch (key) {
-                                    case 0 -> SystemButton.VOLUME_DOWN;
-                                    case 1 -> SystemButton.VOLUME_UP;
-                                    case 2 -> SystemButton.HOME;
-                                    default -> throw new IllegalStateException("Unexpected value: " + key);
-                                };
-                                iosDriver.pressButton(keyType);
-                            }
-                            if (random >= finalSystemEvent && random < (finalSystemEvent + finalTapEvent)) {
-                                int x = new Random().nextInt(width - 60) + 60;
-                                int y = new Random().nextInt(height - 60) + 60;
-                                iosDriver.tap(x, y);
-                            }
-                            if (random >= (finalSystemEvent + finalTapEvent) && random < (finalSystemEvent + finalTapEvent + finalLongPressEvent)) {
-                                int x = new Random().nextInt(width - 60) + 60;
-                                int y = new Random().nextInt(height - 60) + 60;
-                                iosDriver.longPress(x, y, (new Random().nextInt(3) + 1) * 1000);
-                            }
-                            if (random >= (finalSystemEvent + finalTapEvent + finalLongPressEvent) && random < (finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent)) {
-                                int x1 = new Random().nextInt(width - 60) + 60;
-                                int y1 = new Random().nextInt(height - 80) + 80;
-                                int x2 = new Random().nextInt(width - 60) + 60;
-                                int y2 = new Random().nextInt(height - 80) + 80;
-                                iosDriver.swipe(x1, y1, x2, y2);
-                            }
-                            if (random >= (finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent) && random < (finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent + finalNavEvent)) {
-                                iosDriver.appRunBackground((new Random().nextInt(3) + 1) * 1000);
-                            }
-                            Thread.sleep(finalSleepTime);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
+            log.sendStepLog(StepType.INFO, "", "随机事件数：" + pctNum +
+                    "<br>目标应用：" + packageName
+                    + "<br>用户操作时延：" + finalSleepTime + " ms"
+                    + "<br>轻触事件权重：" + finalTapEvent
+                    + "<br>长按事件权重：" + finalLongPressEvent
+                    + "<br>滑动事件权重：" + finalSwipeEvent
+                    + "<br>物理按键事件权重：" + finalSystemEvent
+                    + "<br>系统事件权重：" + finalNavEvent);
+            openApp(new HandleContext(), packageName);
+            int totalCount = finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent + finalNavEvent;
+            for (int i = 0; i < pctNum; i++) {
+                try {
+                    int random = new Random().nextInt(totalCount);
+                    if (random < finalSystemEvent) {
+                        int key = new Random().nextInt(3);
+                        SystemButton keyType = switch (key) {
+                            case 0 -> SystemButton.VOLUME_DOWN;
+                            case 1 -> SystemButton.VOLUME_UP;
+                            case 2 -> SystemButton.HOME;
+                            default -> throw new IllegalStateException("Unexpected value: " + key);
+                        };
+                        iosDriver.pressButton(keyType);
                     }
+                    if (random >= finalSystemEvent && random < (finalSystemEvent + finalTapEvent)) {
+                        int x = new Random().nextInt(width - 60) + 60;
+                        int y = new Random().nextInt(height - 60) + 60;
+                        iosDriver.tap(x, y);
+                    }
+                    if (random >= (finalSystemEvent + finalTapEvent)
+                            && random < (finalSystemEvent + finalTapEvent + finalLongPressEvent)) {
+                        int x = new Random().nextInt(width - 60) + 60;
+                        int y = new Random().nextInt(height - 60) + 60;
+                        iosDriver.longPress(x, y, (new Random().nextInt(3) + 1) * 1000);
+                    }
+                    if (random >= (finalSystemEvent + finalTapEvent + finalLongPressEvent)
+                            && random < (finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent)) {
+                        int x1 = new Random().nextInt(width - 60) + 60;
+                        int y1 = new Random().nextInt(height - 80) + 80;
+                        int x2 = new Random().nextInt(width - 60) + 60;
+                        int y2 = new Random().nextInt(height - 80) + 80;
+                        iosDriver.swipe(x1, y1, x2, y2);
+                    }
+                    if (random >= (finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent)
+                            && random < (finalSystemEvent + finalTapEvent + finalLongPressEvent + finalSwipeEvent
+                                    + finalNavEvent)) {
+                        iosDriver.appRunBackground((new Random().nextInt(3) + 1) * 1000);
+                    }
+                    Thread.sleep(finalSleepTime);
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
-        );
+            }
+        });
 
         boolean finalIsOpenPackageListener = isOpenPackageListener;
         Future<?> packageListener = IOSDeviceThreadPool.cachedThreadPool.submit(() -> {
-                    if (finalIsOpenPackageListener) {
-                        while (!randomThread.isDone()) {
-                            int waitTime = 0;
-                            while (waitTime <= 10 && (!randomThread.isDone())) {
-                                try {
-                                    Thread.sleep(5000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                SibTool.launch(udId, packageName);
-                                waitTime++;
-                            }
-                            SibTool.launch(udId, packageName);
+            if (finalIsOpenPackageListener) {
+                while (!randomThread.isDone()) {
+                    int waitTime = 0;
+                    while (waitTime <= 10 && (!randomThread.isDone())) {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
+                        SibTool.launch(udId, packageName);
+                        waitTime++;
                     }
+                    SibTool.launch(udId, packageName);
                 }
-        );
+            }
+        });
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -1232,9 +1260,9 @@ public class IOSStepHandler {
                     case "poco" -> pocoElement = pocoDriver.findElement(PocoSelector.POCO, pathValue);
                     case "xpath" -> pocoElement = pocoDriver.findElement(PocoSelector.XPATH, pathValue);
                     case "cssSelector", "pocoIterator" ->
-                            pocoElement = pocoDriver.findElement(PocoSelector.CSS_SELECTOR, pathValue);
+                        pocoElement = pocoDriver.findElement(PocoSelector.CSS_SELECTOR, pathValue);
                     default ->
-                            log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
+                        log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
                 }
                 if (pocoElement != null) {
                     break;
@@ -1274,7 +1302,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void getPocoElementAttr(HandleContext handleContext, String des, String selector, String pathValue, String attr, String expect) {
+    public void getPocoElementAttr(HandleContext handleContext, String des, String selector, String pathValue,
+            String attr, String expect) {
         handleContext.setStepDes("验证控件 " + des + " 属性");
         handleContext.setDetail("属性：" + attr + "，期望值：" + expect);
         String attrValue = getPocoAttrValue(handleContext, selector, pathValue, attr);
@@ -1287,7 +1316,7 @@ public class IOSStepHandler {
     }
 
     public void obtainPocoElementAttr(HandleContext handleContext, String des, String selector, String pathValue,
-                                      String attr, String variable) {
+            String attr, String variable) {
         handleContext.setStepDes("获取控件 " + des + " 属性到变量");
         handleContext.setDetail("目标属性：" + attr + "，目标变量：" + variable);
         try {
@@ -1346,7 +1375,8 @@ public class IOSStepHandler {
         return s;
     }
 
-    public void getPocoTextAndAssert(HandleContext handleContext, String des, String selector, String pathValue, String expect) {
+    public void getPocoTextAndAssert(HandleContext handleContext, String des, String selector, String pathValue,
+            String expect) {
         try {
             String s = getPocoText(handleContext, des, selector, pathValue);
             if (handleContext.getE() != null) {
@@ -1400,7 +1430,8 @@ public class IOSStepHandler {
         }
     }
 
-    public void pocoSwipe(HandleContext handleContext, String des, String selector, String value, String des2, String selector2, String value2) {
+    public void pocoSwipe(HandleContext handleContext, String des, String selector, String value, String des2,
+            String selector2, String value2) {
         handleContext.setStepDes("滑动拖拽" + des + "到" + des2);
         handleContext.setDetail("拖拽 " + value + " 到 " + value2);
         try {
@@ -1429,8 +1460,7 @@ public class IOSStepHandler {
                 offsetValue.getInteger("offsetWidth"),
                 offsetValue.getInteger("offsetHeight"),
                 offsetValue.getInteger("windowWidth"),
-                offsetValue.getInteger("windowHeight")
-        ));
+                offsetValue.getInteger("windowHeight")));
         this.screenWindowPosition[0] = offsetValue.getInteger("offsetWidth");
         this.screenWindowPosition[1] = offsetValue.getInteger("offsetHeight");
         this.screenWindowPosition[2] = offsetValue.getInteger("windowWidth");
@@ -1523,7 +1553,7 @@ public class IOSStepHandler {
             case "linkText" -> we = iosDriver.findElement(IOSSelector.LINK_TEXT, pathValue, retryTime);
             case "partialLinkText" -> we = iosDriver.findElement(IOSSelector.PARTIAL_LINK_TEXT, pathValue, retryTime);
             default ->
-                    log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
+                log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
         }
         return we;
     }
@@ -1542,7 +1572,7 @@ public class IOSStepHandler {
             case "linkText" -> iosElements = iosDriver.findElementList(IOSSelector.LINK_TEXT, pathValue);
             case "partialLinkText" -> iosElements = iosDriver.findElementList(IOSSelector.PARTIAL_LINK_TEXT, pathValue);
             default ->
-                    log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
+                log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
         }
         return iosElements;
     }
@@ -1609,7 +1639,7 @@ public class IOSStepHandler {
             x = windowSize.getWidth() * x;
             y = windowSize.getHeight() * y;
         }
-        return new int[]{(int) x, (int) y};
+        return new int[] { (int) x, (int) y };
     }
 
     public void runScript(HandleContext handleContext, String script, String type) {
@@ -1644,9 +1674,9 @@ public class IOSStepHandler {
                     case "poco" -> pocoElements = pocoDriver.findElements(PocoSelector.POCO, pathValue);
                     case "xpath" -> pocoElements = pocoDriver.findElements(PocoSelector.XPATH, pathValue);
                     case "cssSelector", "pocoIterator" ->
-                            pocoElements = pocoDriver.findElements(PocoSelector.CSS_SELECTOR, pathValue);
+                        pocoElements = pocoDriver.findElements(PocoSelector.CSS_SELECTOR, pathValue);
                     default ->
-                            log.sendStepLog(StepType.ERROR, "查找控件元素列表失败", "这个控件元素类型: " + selector + " 不存在!!!");
+                        log.sendStepLog(StepType.ERROR, "查找控件元素列表失败", "这个控件元素类型: " + selector + " 不存在!!!");
                 }
                 if (pocoElements != null) {
                     break;
@@ -1748,7 +1778,7 @@ public class IOSStepHandler {
      * @param elementType   元素类型(原生，web，poco)
      */
     public void getElementTextAndAssertWithOperation(HandleContext handleContext, String des, String selector,
-                                                     String pathValue, String operation, String expect, int elementType) {
+            String pathValue, String operation, String expect, int elementType) {
         try {
             String realValue = switch (elementType) {
                 case IOS_ELEMENT_TYPE -> getText(handleContext, des, selector, pathValue);
@@ -1775,7 +1805,7 @@ public class IOSStepHandler {
                     case "contain" -> assertTrue(realValue.contains(expect));
                     case "notContain" -> assertFalse(realValue.contains(expect));
                     default ->
-                            throw new SonicRespException("未支持的文本断言操作类型" + operation + "，无法进行文本断言");
+                        throw new SonicRespException("未支持的文本断言操作类型" + operation + "，无法进行文本断言");
                 }
             } catch (AssertionError e) {
                 handleContext.setE(e);
@@ -1796,30 +1826,35 @@ public class IOSStepHandler {
             case "stepHold" -> stepHold(handleContext, step.getInteger("content"));
             case "siriCommand" -> siriCommand(handleContext, step.getString("content"));
             case "readText" -> readText(handleContext, step.getString("content"), step.getString("text"));
-            case "clickByImg" -> clickByImg(handleContext, eleList.getJSONObject(0).getString("eleName")
-                    , eleList.getJSONObject(0).getString("eleValue"));
+            case "clickByImg" -> clickByImg(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                    eleList.getJSONObject(0).getString("eleValue"));
             case "click" ->
-                    click(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"));
+                click(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"));
             case "getElementAttr" ->
-                    getElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("text"), step.getString("content"));
+                getElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("text"), step.getString("content"));
             case "obtainElementAttr" ->
-                    obtainElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
-                            eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
-                            step.getString("text"), step.getString("content"));
+                obtainElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("text"), step.getString("content"));
             case "logElementAttr" ->
-                    logElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("text"));
+                logElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("text"));
             case "sendKeys" ->
-                    sendKeys(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("content"));
+                sendKeys(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("content"));
             case "sendKeysByActions" ->
-                    sendKeysByActions(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("content"));
+                sendKeysByActions(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("content"));
             case "isExistEle" ->
-                    isExistEle(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getBoolean("content"));
+                isExistEle(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getBoolean("content"));
             case "isExistEleNum" -> isExistEleNum(handleContext, eleList.getJSONObject(0).getString("eleName"),
                     eleList.getJSONObject(0).getString("eleType"),
                     eleList.getJSONObject(0).getString("eleValue"),
@@ -1831,28 +1866,33 @@ public class IOSStepHandler {
                     step.getInteger("content"),
                     step.getString("text"));
             case "clear" ->
-                    clear(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"));
+                clear(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"));
             case "longPress" ->
-                    longPress(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getInteger("content"));
+                longPress(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getInteger("content"));
             case "swipe" ->
-                    swipePoint(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue")
-                            , eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleValue"));
+                swipePoint(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleValue"), eleList.getJSONObject(1).getString("eleName"),
+                        eleList.getJSONObject(1).getString("eleValue"));
             case "swipeByDefinedDirection" ->
-                    swipeByDefinedDirection(handleContext, step.getString("text"), step.getInteger("content"));
+                swipeByDefinedDirection(handleContext, step.getString("text"), step.getInteger("content"));
             case "swipe2" ->
-                    swipe(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue")
-                            , eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleType"), eleList.getJSONObject(1).getString("eleValue"));
+                swipe(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleType"),
+                        eleList.getJSONObject(1).getString("eleValue"));
             case "tap" ->
-                    tap(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue"));
+                tap(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleValue"));
             case "longPressPoint" ->
-                    longPressPoint(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue")
-                            , step.getInteger("content"));
+                longPressPoint(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleValue"), step.getInteger("content"));
             case "pause" -> pause(handleContext, step.getInteger("content"));
             case "checkImage" ->
-                    checkImage(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue")
-                            , step.getDouble("content"));
+                checkImage(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleValue"), step.getDouble("content"));
             case "stepScreen" -> stepScreen(handleContext);
             case "openApp" -> openApp(handleContext, step.getString("text"));
             case "terminate" -> terminate(handleContext, step.getString("text"));
@@ -1868,70 +1908,82 @@ public class IOSStepHandler {
                 asserts(handleContext, actual, expect, step.getString("stepType"));
             }
             case "getTextValue" ->
-                    globalParams.put(step.getString("content"), getText(handleContext, eleList.getJSONObject(0).getString("eleName")
-                            , eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue")));
+                globalParams.put(step.getString("content"),
+                        getText(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                                eleList.getJSONObject(0).getString("eleType"),
+                                eleList.getJSONObject(0).getString("eleValue")));
             case "sendKeyForce" -> sendKeyForce(handleContext, step.getString("content"));
             case "monkey" ->
-                    runMonkey(handleContext, step.getJSONObject("content"), step.getJSONArray("text").toJavaList(JSONObject.class));
+                runMonkey(handleContext, step.getJSONObject("content"),
+                        step.getJSONArray("text").toJavaList(JSONObject.class));
             case "publicStep" -> publicStep(handleContext, step.getString("content"), step.getJSONArray("pubSteps"));
             case "findElementInterval" ->
-                    setFindElementInterval(handleContext, step.getInteger("content"), step.getInteger("text"));
+                setFindElementInterval(handleContext, step.getInteger("content"), step.getInteger("text"));
             case "setPasteboard" -> setPasteboard(handleContext, step.getString("content"));
             case "getPasteboard" -> globalParams.put(step.getString("content"), getPasteboard(handleContext));
             case "runScript" -> runScript(handleContext, step.getString("content"), step.getString("text"));
             case "startPocoDriver" ->
-                    startPocoDriver(handleContext, step.getString("content"), step.getInteger("text"));
+                startPocoDriver(handleContext, step.getString("content"), step.getInteger("text"));
             case "setDefaultFindPocoElementInterval" ->
-                    setDefaultFindPocoElementInterval(handleContext, step.getInteger("content"), step.getInteger("text"));
+                setDefaultFindPocoElementInterval(handleContext, step.getInteger("content"), step.getInteger("text"));
             case "isExistPocoEle" ->
-                    isExistPocoEle(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getBoolean("content"));
+                isExistPocoEle(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getBoolean("content"));
             case "isExistPocoEleNum" -> isExistEleNum(handleContext,
-                    eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                    , eleList.getJSONObject(0).getString("eleValue"), step.getString("content"),
+                    eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType"),
+                    eleList.getJSONObject(0).getString("eleValue"), step.getString("content"),
                     step.getInteger("text"), POCO_ELEMENT_TYPE);
             case "pocoClick" ->
-                    pocoClick(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"));
+                pocoClick(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"));
             case "pocoLongPress" ->
-                    pocoLongPress(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue")
-                            , step.getInteger("content"));
+                pocoLongPress(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getInteger("content"));
             case "pocoSwipe" ->
-                    pocoSwipe(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue")
-                            , eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleType"), eleList.getJSONObject(1).getString("eleValue"));
+                pocoSwipe(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleType"),
+                        eleList.getJSONObject(1).getString("eleValue"));
             case "setTheRealPositionOfTheWindow" ->
-                    setTheRealPositionOfTheWindow(handleContext, step.getString("content"));
+                setTheRealPositionOfTheWindow(handleContext, step.getString("content"));
             case "getPocoElementAttr" ->
-                    getPocoElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("text"), step.getString("content"));
+                getPocoElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("text"), step.getString("content"));
             case "obtainPocoElementAttr" ->
-                    obtainPocoElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
-                            eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
-                            step.getString("text"), step.getString("content"));
+                obtainPocoElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("text"), step.getString("content"));
             case "logPocoElementAttr" ->
-                    logPocoElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("text"));
+                logPocoElementAttr(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("text"));
             case "getPocoTextValue" ->
-                    globalParams.put(step.getString("content"), getPocoText(handleContext, eleList.getJSONObject(0).getString("eleName")
-                            , eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue")));
+                globalParams.put(step.getString("content"),
+                        getPocoText(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                                eleList.getJSONObject(0).getString("eleType"),
+                                eleList.getJSONObject(0).getString("eleValue")));
             case "freezeSource" -> freezeSource(handleContext);
             case "thawSource" -> thawSource(handleContext);
             case "closePocoDriver" -> closePocoDriver(handleContext);
             case "setSnapshotMaxDepth" -> setSnapshotMaxDepth(handleContext, step.getInteger("content"));
             case "iteratorPocoElement" ->
-                    iteratorPocoElement(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"));
+                iteratorPocoElement(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"));
             case "iteratorIOSElement" ->
-                    iteratorIOSElement(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"));
+                iteratorIOSElement(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"));
             // <= 2.5版本的文本断言语法(包括原生，webView，Poco三类)，保留做兼容，老版本升级上来的存量用例继续可用
             case "getText" ->
-                    getTextAndAssert(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("content"));
+                getTextAndAssert(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("content"));
             case "getPocoText" ->
-                    getPocoTextAndAssert(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
-                            , eleList.getJSONObject(0).getString("eleValue"), step.getString("content"));
+                getPocoTextAndAssert(handleContext, eleList.getJSONObject(0).getString("eleName"),
+                        eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue"),
+                        step.getString("content"));
             // > 2.5版本的文本断言语法，支持指定断言的方式
             case "assertText" -> getElementTextAndAssertWithOperation(handleContext,
                     eleList.getJSONObject(0).getString("eleName"),
@@ -1961,8 +2013,8 @@ public class IOSStepHandler {
                         log.sendStepLog(StepType.PASS, stepDes + "异常！已忽略...", detail);
                         handleContext.clear();
                     } else {
-                        ConditionEnum conditionType =
-                                SonicEnum.valueToEnum(ConditionEnum.class, stepJson.getInteger("conditionType"));
+                        ConditionEnum conditionType = SonicEnum.valueToEnum(ConditionEnum.class,
+                                stepJson.getInteger("conditionType"));
                         String des = "「%s」步骤「%s」异常".formatted(conditionType.getName(), stepDes);
                         log.sendStepLog(StepType.ERROR, des, detail);
                         exceptionLog(e);

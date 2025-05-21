@@ -17,7 +17,8 @@
  */
 package org.cloud.sonic.agent.tests.ios;
 
-import com.alibaba.fastjson.JSONObject;
+import java.util.concurrent.Semaphore;
+
 import org.cloud.sonic.agent.bridge.ios.IOSDeviceLocalStatus;
 import org.cloud.sonic.agent.bridge.ios.SibTool;
 import org.cloud.sonic.agent.common.interfaces.ResultDetailStatus;
@@ -26,7 +27,7 @@ import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Semaphore;
+import com.alibaba.fastjson.JSONObject;
 
 public class IOSTestTaskBootThread extends Thread {
 
@@ -43,7 +44,6 @@ public class IOSTestTaskBootThread extends Thread {
     private Semaphore finished = new Semaphore(0);
 
     private Boolean forceStop = false;
-
 
     /**
      * 一些任务信息
@@ -177,7 +177,7 @@ public class IOSTestTaskBootThread extends Thread {
             }
 
             startTestSuccess = true;
-            //启动测试
+            // 启动测试
             try {
                 int wdaPort = SibTool.startWda(udId)[0];
                 iosStepHandler.startIOSDriver(udId, wdaPort);
@@ -188,23 +188,22 @@ public class IOSTestTaskBootThread extends Thread {
                 return;
             }
 
-            //电量过低退出测试
+            // 电量过低退出测试
             if (iosStepHandler.getBattery()) {
                 iosStepHandler.closeIOSDriver();
                 IOSDeviceLocalStatus.finish(udId);
                 return;
             }
 
-            //正常运行步骤的线程
+            // 正常运行步骤的线程
             runStepThread = new IOSRunStepThread(this);
-            //性能数据获取线程
+            // 性能数据获取线程
             perfDataThread = new IOSPerfDataThread(this);
-            //录像线程
+            // 录像线程
             recordThread = new IOSRecordThread(this);
             TaskManager.startChildThread(this.getName(), runStepThread, perfDataThread, recordThread);
 
-
-            //等待两个线程结束了才结束方法
+            // 等待两个线程结束了才结束方法
             while ((recordThread.isAlive()) || (runStepThread.isAlive())) {
                 Thread.sleep(1000);
             }

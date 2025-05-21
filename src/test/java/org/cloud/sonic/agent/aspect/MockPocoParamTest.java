@@ -1,7 +1,5 @@
 package org.cloud.sonic.agent.aspect;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.cloud.sonic.agent.common.models.HandleContext;
 import org.cloud.sonic.driver.poco.models.PocoElement;
 import org.cloud.sonic.driver.poco.models.RootElement;
@@ -13,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 @RunWith(SpringRunner.class)
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)

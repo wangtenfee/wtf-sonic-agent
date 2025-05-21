@@ -17,9 +17,6 @@
  */
 package org.cloud.sonic.agent.bridge.android;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
 import org.cloud.sonic.agent.common.interfaces.IsHMStatus;
 import org.cloud.sonic.agent.common.interfaces.PlatformType;
 import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
@@ -28,6 +25,10 @@ import org.cloud.sonic.agent.transport.TransportWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 
 /**
  * @author ZhouYiXun
@@ -53,7 +54,8 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
         deviceDetail.put("model", device.getProperty(IDevice.PROP_DEVICE_MODEL));
         deviceDetail.put("status", device.getState() == null ? null : device.getState().toString());
         deviceDetail.put("platform", PlatformType.ANDROID);
-        if (device.getProperty("ro.config.ringtone") != null && device.getProperty("ro.config.ringtone").contains("Harmony")) {
+        if (device.getProperty("ro.config.ringtone") != null
+                && device.getProperty("ro.config.ringtone").contains("Harmony")) {
             deviceDetail.put("version", device.getProperty("hw_sc.build.platform.version"));
             deviceDetail.put("isHm", IsHMStatus.IS_HM);
         } else {

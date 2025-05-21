@@ -46,9 +46,9 @@ public class ProcessCommandTool {
         try {
             String system = System.getProperty("os.name").toLowerCase();
             if (system.contains("win")) {
-                process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", commandLine});
+                process = Runtime.getRuntime().exec(new String[] { "cmd", "/c", commandLine });
             } else {
-                process = Runtime.getRuntime().exec(new String[]{"sh", "-c", commandLine});
+                process = Runtime.getRuntime().exec(new String[] { "sh", "-c", commandLine });
             }
             inputStreamReader = new InputStreamReader(process.getInputStream());
             consoleInput = new LineNumberReader(inputStreamReader);

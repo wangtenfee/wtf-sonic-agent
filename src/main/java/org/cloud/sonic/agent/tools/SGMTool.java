@@ -17,15 +17,16 @@
  */
 package org.cloud.sonic.agent.tools;
 
-import lombok.extern.slf4j.Slf4j;
-import org.cloud.sonic.agent.common.maps.GlobalProcessMap;
-import org.springframework.stereotype.Component;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.Semaphore;
+
+import org.cloud.sonic.agent.common.maps.GlobalProcessMap;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -55,9 +56,9 @@ public class SGMTool {
         Process ps = null;
         try {
             if (system.contains("win")) {
-                ps = Runtime.getRuntime().exec(new String[]{"cmd", "/c", command});
+                ps = Runtime.getRuntime().exec(new String[] { "cmd", "/c", command });
             } else if (system.contains("linux") || system.contains("mac")) {
-                ps = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
+                ps = Runtime.getRuntime().exec(new String[] { "sh", "-c", command });
             }
             InputStreamReader inputStreamReader = new InputStreamReader(ps.getInputStream());
             BufferedReader stdInput = new BufferedReader(inputStreamReader);
@@ -66,7 +67,8 @@ public class SGMTool {
                 String s;
                 while (true) {
                     try {
-                        if ((s = stdInput.readLine()) == null) break;
+                        if ((s = stdInput.readLine()) == null)
+                            break;
                     } catch (IOException e) {
                         log.info(e.getMessage());
                         break;

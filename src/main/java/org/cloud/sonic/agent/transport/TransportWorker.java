@@ -17,14 +17,16 @@
  */
 package org.cloud.sonic.agent.transport;
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
-import org.cloud.sonic.agent.tools.BytesTool;
-import org.springframework.context.annotation.Configuration;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.cloud.sonic.agent.tools.BytesTool;
+import org.springframework.context.annotation.Configuration;
+
+import com.alibaba.fastjson.JSONObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @Slf4j

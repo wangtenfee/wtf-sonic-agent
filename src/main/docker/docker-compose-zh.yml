@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   sonic-agent:
     image: "dockerproxy.com/sonicorg/sonic-agent-linux:SONIC_VERSION"

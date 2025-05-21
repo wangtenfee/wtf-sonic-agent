@@ -1,10 +1,10 @@
 package org.cloud.sonic.agent.common.maps;
 
-import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
-import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
+import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
 
 public class HandlerMap {
     private static Map<String, AndroidStepHandler> androidHandlerMap = new ConcurrentHashMap<String, AndroidStepHandler>();

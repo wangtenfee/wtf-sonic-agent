@@ -17,36 +17,7 @@
  */
 package org.cloud.sonic.agent.bridge.ios;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import jakarta.websocket.Session;
-import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
-import org.cloud.sonic.agent.common.interfaces.PlatformType;
-import org.cloud.sonic.agent.common.maps.*;
-import org.cloud.sonic.agent.tests.LogUtil;
-import org.cloud.sonic.agent.tests.ios.IOSBatteryThread;
-import org.cloud.sonic.agent.tools.BytesTool;
-import org.cloud.sonic.agent.tools.PortTool;
-import org.cloud.sonic.agent.tools.ProcessCommandTool;
-import org.cloud.sonic.agent.tools.ScheduleTool;
-import org.cloud.sonic.agent.transport.TransportWorker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationListener;
-import jakarta.annotation.PostConstruct;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.*;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
+import static org.cloud.sonic.agent.tools.BytesTool.sendText;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -60,9 +31,48 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
-import static org.cloud.sonic.agent.tools.BytesTool.sendText;
+import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
+import org.cloud.sonic.agent.common.interfaces.PlatformType;
+import org.cloud.sonic.agent.common.maps.DevicesBatteryMap;
+import org.cloud.sonic.agent.common.maps.GlobalProcessMap;
+import org.cloud.sonic.agent.common.maps.IOSDeviceManagerMap;
+import org.cloud.sonic.agent.common.maps.IOSInfoMap;
+import org.cloud.sonic.agent.common.maps.IOSProcessMap;
+import org.cloud.sonic.agent.tests.LogUtil;
+import org.cloud.sonic.agent.tests.ios.IOSBatteryThread;
+import org.cloud.sonic.agent.tools.BytesTool;
+import org.cloud.sonic.agent.tools.PortTool;
+import org.cloud.sonic.agent.tools.ProcessCommandTool;
+import org.cloud.sonic.agent.tools.ScheduleTool;
+import org.cloud.sonic.agent.transport.TransportWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
-@DependsOn({"iOSThreadPoolInit"})
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.websocket.Session;
+
+@DependsOn({ "iOSThreadPoolInit" })
 @Component
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
@@ -110,10 +120,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             try {
                 if (system.contains("win")) {
                     listenProcess = Runtime.getRuntime()
-                            .exec(new String[]{"cmd", "/c", String.format(commandLine, sib)});
+                            .exec(new String[] { "cmd", "/c", String.format(commandLine, sib) });
                 } else if (system.contains("linux") || system.contains("mac")) {
                     listenProcess = Runtime.getRuntime()
-                            .exec(new String[]{"sh", "-c", String.format(commandLine, sib)});
+                            .exec(new String[] { "sh", "-c", String.format(commandLine, sib) });
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -239,7 +249,7 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
         wdaPort = (wdaPort == 0) ? PortTool.getPort() : wdaPort;
         mjpegPort = (mjpegPort == 0) ? PortTool.getPort() : mjpegPort;
         Process wdaProcess = null;
-        final Process[] iProxyProcess = {null};
+        final Process[] iProxyProcess = { null };
         String commandLine;
 
         // ios17 support, but mac only
@@ -254,9 +264,9 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
         }
         String system = System.getProperty("os.name").toLowerCase();
         if (system.contains("win")) {
-            wdaProcess = Runtime.getRuntime().exec(new String[]{"cmd", "/c", commandLine});
+            wdaProcess = Runtime.getRuntime().exec(new String[] { "cmd", "/c", commandLine });
         } else if (system.contains("linux") || system.contains("mac")) {
-            wdaProcess = Runtime.getRuntime().exec(new String[]{"sh", "-c", commandLine});
+            wdaProcess = Runtime.getRuntime().exec(new String[] { "sh", "-c", commandLine });
         }
         InputStreamReader inputStreamReader = new InputStreamReader(wdaProcess.getInputStream());
         BufferedReader stdInput = new BufferedReader(inputStreamReader);
@@ -280,8 +290,8 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
                     if (SibTool.isUpperThanIos17(udId)) {
                         try {
                             iProxyProcess[0] = Runtime.getRuntime().exec(
-                                    new String[]{"sh", "-c", String.format("iproxy -u %s %d:8100 %d:9100 -s 0.0.0.0",
-                                            udId, finalWdaPort, finalMjpegPort)});
+                                    new String[] { "sh", "-c", String.format("iproxy -u %s %d:8100 %d:9100 -s 0.0.0.0",
+                                            udId, finalWdaPort, finalMjpegPort) });
                         } catch (IOException e) {
                             logger.info(e.getMessage());
                         }
@@ -313,7 +323,7 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             wait++;
             if (wait >= 120) {
                 logger.info(udId + " WebDriverAgent start timeout!");
-                return new int[]{0, 0};
+                return new int[] { 0, 0 };
             }
         }
         processList = new ArrayList<>();
@@ -322,7 +332,7 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             processList.add(iProxyProcess[0]);
         }
         IOSProcessMap.getMap().put(udId, processList);
-        return new int[]{wdaPort, mjpegPort};
+        return new int[] { wdaPort, mjpegPort };
     }
 
     public static void reboot(String udId) {
@@ -365,9 +375,9 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             }
             try {
                 if (system.contains("win")) {
-                    ps = Runtime.getRuntime().exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId)});
+                    ps = Runtime.getRuntime().exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId) });
                 } else if (system.contains("linux") || system.contains("mac")) {
-                    ps = Runtime.getRuntime().exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId)});
+                    ps = Runtime.getRuntime().exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId) });
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -421,9 +431,9 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             String commandLine = "%s orientation -w -u %s";
             try {
                 if (system.contains("win")) {
-                    ps = Runtime.getRuntime().exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId)});
+                    ps = Runtime.getRuntime().exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId) });
                 } else if (system.contains("linux") || system.contains("mac")) {
-                    ps = Runtime.getRuntime().exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId)});
+                    ps = Runtime.getRuntime().exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId) });
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -481,10 +491,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
         try {
             if (system.contains("win")) {
                 appListProcess = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 appListProcess = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId) });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -535,10 +545,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
         try {
             if (system.contains("win")) {
                 appProcess = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 appProcess = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId) });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -634,10 +644,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             String system = System.getProperty("os.name").toLowerCase();
             if (system.contains("win")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId, port)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId, port) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId, port)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId, port) });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -738,10 +748,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             String system = System.getProperty("os.name").toLowerCase();
             if (system.contains("win")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId, local, target)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId, local, target) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId, local, target)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId, local, target) });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -880,10 +890,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
         try {
             if (system.contains("win")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, interval, udId, tail)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, interval, udId, tail) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, interval, udId, tail)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, interval, udId, tail) });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -979,10 +989,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             int port = PortTool.getPort();
             if (system.contains("win")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId, port)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId, port) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId, port)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId, port) });
             }
             GlobalProcessMap.getMap().put(processName, ps);
             shareJSON.put("port", port);
@@ -1003,10 +1013,10 @@ public class SibTool implements ApplicationListener<ContextRefreshedEvent> {
             Process ps = null;
             if (system.contains("win")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"cmd", "/c", String.format(commandLine, sib, udId, port)});
+                        .exec(new String[] { "cmd", "/c", String.format(commandLine, sib, udId, port) });
             } else if (system.contains("linux") || system.contains("mac")) {
                 ps = Runtime.getRuntime()
-                        .exec(new String[]{"sh", "-c", String.format(commandLine, sib, udId, port)});
+                        .exec(new String[] { "sh", "-c", String.format(commandLine, sib, udId, port) });
             }
             GlobalProcessMap.getMap().put(processName, ps);
         } catch (Exception e) {

@@ -29,13 +29,12 @@ import java.util.concurrent.TimeUnit;
 public class ScheduleTool {
 
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(
-            Runtime.getRuntime().availableProcessors() << 1
-    );
+            Runtime.getRuntime().availableProcessors() << 1);
 
     public static void scheduleAtFixedRate(Runnable command,
-                                           long initialDelay,
-                                           long period,
-                                           TimeUnit unit) {
+            long initialDelay,
+            long period,
+            TimeUnit unit) {
         scheduledExecutorService.scheduleAtFixedRate(command, initialDelay, period, unit);
     }
 

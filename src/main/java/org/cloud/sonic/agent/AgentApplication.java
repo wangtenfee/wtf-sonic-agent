@@ -46,7 +46,8 @@ public class AgentApplication {
     @Bean
     public TomcatServletWebServerFactory servletContainer() {
         TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory(port);
-        factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> connector.setProperty("relaxedQueryChars", "|{}[]\\"));
+        factory.addConnectorCustomizers(
+                (TomcatConnectorCustomizer) connector -> connector.setProperty("relaxedQueryChars", "|{}[]\\"));
         return factory;
     }
 }

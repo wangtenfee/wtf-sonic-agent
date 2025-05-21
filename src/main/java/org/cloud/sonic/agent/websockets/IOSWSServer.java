@@ -17,12 +17,20 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import jakarta.websocket.*;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import static org.cloud.sonic.agent.tools.BytesTool.sendText;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import javax.imageio.stream.FileImageOutputStream;
+
 import org.cloud.sonic.agent.bridge.ios.IOSDeviceLocalStatus;
 import org.cloud.sonic.agent.bridge.ios.IOSDeviceThreadPool;
 import org.cloud.sonic.agent.bridge.ios.SibTool;
@@ -35,7 +43,11 @@ import org.cloud.sonic.agent.common.models.HandleContext;
 import org.cloud.sonic.agent.tests.TaskManager;
 import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
 import org.cloud.sonic.agent.tests.ios.IOSRunStepThread;
-import org.cloud.sonic.agent.tools.*;
+import org.cloud.sonic.agent.tools.AgentManagerTool;
+import org.cloud.sonic.agent.tools.BytesTool;
+import org.cloud.sonic.agent.tools.PortTool;
+import org.cloud.sonic.agent.tools.SGMTool;
+import org.cloud.sonic.agent.tools.ScheduleTool;
 import org.cloud.sonic.agent.tools.file.DownloadTool;
 import org.cloud.sonic.agent.tools.file.UploadTools;
 import org.cloud.sonic.agent.transport.TransportWorker;
@@ -48,18 +60,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.imageio.stream.FileImageOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
-import static org.cloud.sonic.agent.tools.BytesTool.sendText;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -76,7 +87,7 @@ public class IOSWSServer implements IIOSWSServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("key") String secretKey,
-                       @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
+            @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
         if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
             log.info("Auth Failed!");
             return;
@@ -135,7 +146,8 @@ public class IOSWSServer implements IIOSWSServer {
 
         IOSDeviceThreadPool.cachedThreadPool.execute(() -> {
             IOSStepHandler iosStepHandler = new IOSStepHandler();
-            iosStepHandler.setTestMode(0, 0, udId, DeviceStatus.DEBUGGING, session.getUserProperties().get("id").toString());
+            iosStepHandler.setTestMode(0, 0, udId, DeviceStatus.DEBUGGING,
+                    session.getUserProperties().get("id").toString());
             JSONObject result = new JSONObject();
             try {
                 iosStepHandler.startIOSDriver(udId, ports[0]);
@@ -244,7 +256,8 @@ public class IOSWSServer implements IIOSWSServer {
                             Thread.sleep(2000);
                             JSONObject paste = new JSONObject();
                             paste.put("msg", "paste");
-                            paste.put("detail", new String(iosDriver.getPasteboard(PasteboardType.PLAIN_TEXT), StandardCharsets.UTF_8));
+                            paste.put("detail", new String(iosDriver.getPasteboard(PasteboardType.PLAIN_TEXT),
+                                    StandardCharsets.UTF_8));
                             sendText(session, paste.toJSONString());
                             iosDriver.pressButton(SystemButton.HOME);
                         } catch (SonicRespException | InterruptedException e) {
@@ -315,7 +328,8 @@ public class IOSWSServer implements IIOSWSServer {
                 case "debug" -> {
                     switch (msg.getString("detail")) {
                         case "poco" -> IOSDeviceThreadPool.cachedThreadPool.execute(() -> {
-                            iosStepHandler.startPocoDriver(new HandleContext(), msg.getString("engine"), msg.getInteger("port"));
+                            iosStepHandler.startPocoDriver(new HandleContext(), msg.getString("engine"),
+                                    msg.getInteger("port"));
                             JSONObject poco = new JSONObject();
                             try {
                                 poco.put("result", iosStepHandler.getPocoDriver().getPageSourceForJsonString());
@@ -338,9 +352,7 @@ public class IOSWSServer implements IIOSWSServer {
                         }
                         case "stopStep" -> TaskManager.forceStopDebugStepThread(
                                 IOSRunStepThread.IOS_RUN_STEP_TASK_PRE.formatted(
-                                        0, msg.getInteger("caseId"), msg.getString("udId")
-                                )
-                        );
+                                        0, msg.getInteger("caseId"), msg.getString("udId")));
                         case "tap" -> {
                             if (iosDriver != null) {
                                 String xy = msg.getString("point");
@@ -383,7 +395,8 @@ public class IOSWSServer implements IIOSWSServer {
                         case "keyEvent" -> {
                             if (iosDriver != null) {
                                 try {
-                                    if (msg.getString("key").equals("home") || msg.getString("key").equals("volumeup") || msg.getString("key").equals("volumedown")) {
+                                    if (msg.getString("key").equals("home") || msg.getString("key").equals("volumeup")
+                                            || msg.getString("key").equals("volumedown")) {
                                         iosDriver.pressButton(msg.getString("key"));
                                     } else if (msg.getString("key").equals("lock")) {
                                         if (iosDriver.isLocked()) {
@@ -446,9 +459,11 @@ public class IOSWSServer implements IIOSWSServer {
                                     if (!folder.exists()) {
                                         folder.mkdirs();
                                     }
-                                    File output = new File(folder + File.separator + udId + Calendar.getInstance().getTimeInMillis() + ".png");
+                                    File output = new File(folder + File.separator + udId
+                                            + Calendar.getInstance().getTimeInMillis() + ".png");
                                     try {
-                                        byte[] bt = iosStepHandler.findEle("xpath", msg.getString("xpath")).screenshot();
+                                        byte[] bt = iosStepHandler.findEle("xpath", msg.getString("xpath"))
+                                                .screenshot();
                                         FileImageOutputStream imageOutput = new FileImageOutputStream(output);
                                         imageOutput.write(bt, 0, bt.length);
                                         imageOutput.close();

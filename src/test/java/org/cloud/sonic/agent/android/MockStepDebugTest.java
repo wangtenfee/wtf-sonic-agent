@@ -1,9 +1,9 @@
 package org.cloud.sonic.agent.android;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import lombok.Getter;
-import lombok.Setter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.tests.android.AndroidRunStepThread;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
@@ -18,9 +18,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -68,7 +70,7 @@ public class MockStepDebugTest {
     }
 
     private JSONObject getMockTestData(String fileName) throws IOException {
-//        System.out.println(this.getClass().getResource("/"+ileName).getPath());
+        // System.out.println(this.getClass().getResource("/"+ileName).getPath());
         BufferedReader in = new BufferedReader(new FileReader(this.getClass().getResource("/" + fileName).getPath()));
         StringBuilder jsonStr = new StringBuilder();
         String str;
@@ -94,5 +96,7 @@ public class MockStepDebugTest {
     @Getter
     @Setter
     private String stepMsg = "{\"msg\":\"runStep\",\"pf\":1,\"gp\":{},\"sessionId\":\"0\",\"pwd\":\"\",\"udId\":\"829ed1f\",\"steps\":[{\"step\":{\"stepType\":\"startPocoDriver\",\"caseId\":1,\"elements\":[],\"conditionType\":0,\"id\":1,\"sort\":1,\"text\":\"5001\",\"error\":3,\"projectId\":1,\"content\":\"UNITY_3D\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(name=\\\"star\\\", type=\\\"Image\\\")\",\"id\":1,\"moduleId\":0,\"eleName\":\"star1\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":2,\"sort\":2,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"star\\\")[1]\",\"id\":2,\"moduleId\":0,\"eleName\":\"star2\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":3,\"sort\":3,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"isExistPocoEle\",\"sort\":4,\"error\":1,\"content\":\"true\",\"parentId\":0,\"platform\":1,\"caseId\":1,\"childSteps\":[{\"stepType\":\"pocoClick\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(name=\\\"star\\\", type=\\\"Image\\\")\",\"id\":1,\"moduleId\":0,\"eleName\":\"star1\",\"projectId\":1}],\"conditionType\":0,\"id\":6,\"sort\":5,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":5,\"platform\":1},{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(name=\\\"star\\\", type=\\\"Image\\\")\",\"id\":1,\"moduleId\":0,\"eleName\":\"star1\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":7,\"sort\":6,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":5,\"platform\":1}],\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(name=\\\"star\\\", type=\\\"Image\\\")\",\"id\":1,\"moduleId\":0,\"eleName\":\"star1\",\"projectId\":1}],\"conditionType\":1,\"id\":5,\"text\":\"\",\"projectId\":1}},{\"step\":{\"stepType\":\"isExistPocoEle\",\"sort\":7,\"error\":1,\"content\":\"true\",\"parentId\":0,\"platform\":1,\"caseId\":1,\"childSteps\":[{\"stepType\":\"pocoLongPress\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"star\\\")[1]\",\"id\":2,\"moduleId\":0,\"eleName\":\"star2\",\"projectId\":1}],\"conditionType\":0,\"id\":9,\"sort\":8,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"100\",\"parentId\":8,\"platform\":1}],\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"star\\\")[1]\",\"id\":2,\"moduleId\":0,\"eleName\":\"star2\",\"projectId\":1}],\"conditionType\":4,\"id\":8,\"text\":\"\",\"projectId\":1}},{\"step\":{\"stepType\":\"closePocoDriver\",\"caseId\":1,\"elements\":[],\"conditionType\":0,\"id\":10,\"sort\":9,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}}],\"cid\":1}\n";
-//    private String stepMsg = "{\"msg\":\"runStep\",\"pf\":1,\"gp\":{},\"sessionId\":\"2\",\"pwd\":\"\",\"udId\":\"829ed1f\",\"steps\":[{\"step\":{\"stepType\":\"startPocoDriver\",\"caseId\":1,\"elements\":[],\"conditionType\":0,\"id\":1,\"sort\":1,\"text\":\"5001\",\"error\":3,\"projectId\":1,\"content\":\"UNITY_3D\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(name=\\\"star\\\", type=\\\"Image\\\")\",\"id\":1,\"moduleId\":0,\"eleName\":\"star1\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":2,\"sort\":2,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"star\\\")[1]\",\"id\":2,\"moduleId\":0,\"eleName\":\"star2\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":3,\"sort\":3,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"closePocoDriver\",\"caseId\":1,\"elements\":[],\"conditionType\":0,\"id\":4,\"sort\":4,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}}],\"cid\":1}";
+    // private String stepMsg =
+    // "{\"msg\":\"runStep\",\"pf\":1,\"gp\":{},\"sessionId\":\"2\",\"pwd\":\"\",\"udId\":\"829ed1f\",\"steps\":[{\"step\":{\"stepType\":\"startPocoDriver\",\"caseId\":1,\"elements\":[],\"conditionType\":0,\"id\":1,\"sort\":1,\"text\":\"5001\",\"error\":3,\"projectId\":1,\"content\":\"UNITY_3D\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(name=\\\"star\\\",
+    // type=\\\"Image\\\")\",\"id\":1,\"moduleId\":0,\"eleName\":\"star1\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":2,\"sort\":2,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"pocoSwipe\",\"caseId\":1,\"elements\":[{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"star\\\")[1]\",\"id\":2,\"moduleId\":0,\"eleName\":\"star2\",\"projectId\":1},{\"eleType\":\"poco\",\"eleValue\":\"poco(\\\"shell\\\")\",\"id\":5,\"moduleId\":0,\"eleName\":\"贝壳\",\"projectId\":1}],\"conditionType\":0,\"id\":3,\"sort\":3,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}},{\"step\":{\"stepType\":\"closePocoDriver\",\"caseId\":1,\"elements\":[],\"conditionType\":0,\"id\":4,\"sort\":4,\"text\":\"\",\"error\":3,\"projectId\":1,\"content\":\"\",\"parentId\":0,\"platform\":1}}],\"cid\":1}";
 }

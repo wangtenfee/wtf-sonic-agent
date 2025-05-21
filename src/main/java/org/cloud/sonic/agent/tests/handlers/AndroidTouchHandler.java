@@ -17,16 +17,6 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
-import lombok.extern.slf4j.Slf4j;
-import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
-import org.cloud.sonic.agent.common.enums.AndroidKey;
-import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
-import org.cloud.sonic.agent.common.maps.HandlerMap;
-import org.cloud.sonic.agent.tools.PortTool;
-import org.cloud.sonic.driver.common.tool.SonicRespException;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -37,6 +27,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+
+import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
+import org.cloud.sonic.agent.common.enums.AndroidKey;
+import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
+import org.cloud.sonic.agent.common.maps.HandlerMap;
+import org.cloud.sonic.agent.tools.PortTool;
+import org.cloud.sonic.driver.common.tool.SonicRespException;
+
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AndroidTouchHandler {
@@ -58,7 +60,8 @@ public class AndroidTouchHandler {
     }
 
     public static TouchMode getTouchMode(IDevice iDevice) {
-        return touchModeMap.get(iDevice.getSerialNumber()) == null ? TouchMode.ADB : touchModeMap.get(iDevice.getSerialNumber());
+        return touchModeMap.get(iDevice.getSerialNumber()) == null ? TouchMode.ADB
+                : touchModeMap.get(iDevice.getSerialNumber());
     }
 
     public static void tap(IDevice iDevice, int x, int y) throws SonicRespException {
@@ -96,7 +99,8 @@ public class AndroidTouchHandler {
                 }
                 writeToOutputStream(iDevice, "up\n");
             }
-            case ADB -> AndroidDeviceBridgeTool.executeCommand(iDevice, String.format("input swipe %d %d %d %d %d", x, y, x, y, time));
+            case ADB -> AndroidDeviceBridgeTool.executeCommand(iDevice,
+                    String.format("input swipe %d %d %d %d %d", x, y, x, y, time));
             case APPIUM_UIAUTOMATOR2_SERVER -> {
                 AndroidStepHandler curStepHandler = HandlerMap.getAndroidMap().get(iDevice.getSerialNumber());
                 if (curStepHandler != null && curStepHandler.getAndroidDriver() != null) {
@@ -111,7 +115,8 @@ public class AndroidTouchHandler {
         swipe(iDevice, x1, y1, x2, y2, DEFAULT_SWIPE_DURATION);
     }
 
-    public static void swipe(IDevice iDevice, int x1, int y1, int x2, int y2, int swipeDuration) throws SonicRespException {
+    public static void swipe(IDevice iDevice, int x1, int y1, int x2, int y2, int swipeDuration)
+            throws SonicRespException {
         switch (getTouchMode(iDevice)) {
             case SONIC_APK -> {
                 int[] re1 = transferWithRotation(iDevice, x1, y1);
@@ -133,10 +138,10 @@ public class AndroidTouchHandler {
                         writeToOutputStream(iDevice, String.format("move %d %d\n", re2[0], re2[1]));
                         break;
                     }
-                    BiFunction<Integer, Integer, Integer> transitionX = (start, end) ->
-                            (int) (start + (end - start) * timeProgress);
-                    BiFunction<Integer, Integer, Integer> transitionY = (start, end) ->
-                            (int) (start + (end - start) * timeProgress);
+                    BiFunction<Integer, Integer, Integer> transitionX = (start,
+                            end) -> (int) (start + (end - start) * timeProgress);
+                    BiFunction<Integer, Integer, Integer> transitionY = (start,
+                            end) -> (int) (start + (end - start) * timeProgress);
 
                     int currentX = transitionX.apply(re1[0], re2[0]);
                     int currentY = transitionY.apply(re1[1], re2[1]);
@@ -171,10 +176,12 @@ public class AndroidTouchHandler {
         drag(iDevice, x1, y1, x2, y2, DEFAULT_SWIPE_DURATION);
     }
 
-    public static void drag(IDevice iDevice, int x1, int y1, int x2, int y2, int swipeDuration) throws SonicRespException {
+    public static void drag(IDevice iDevice, int x1, int y1, int x2, int y2, int swipeDuration)
+            throws SonicRespException {
         switch (getTouchMode(iDevice)) {
             case ADB ->
-                    AndroidDeviceBridgeTool.executeCommand(iDevice, String.format("input draganddrop %d %d %d %d %d", x1, y1, x2, y2, swipeDuration));
+                AndroidDeviceBridgeTool.executeCommand(iDevice,
+                        String.format("input draganddrop %d %d %d %d %d", x1, y1, x2, y2, swipeDuration));
             case APPIUM_UIAUTOMATOR2_SERVER -> {
                 AndroidStepHandler curStepHandler = HandlerMap.getAndroidMap().get(iDevice.getSerialNumber());
                 if (curStepHandler != null && curStepHandler.getAndroidDriver() != null) {
@@ -182,7 +189,8 @@ public class AndroidTouchHandler {
                 }
             }
             case SONIC_APK -> {
-                // 原本这段代码是在`swipe(IDevice iDevice, int x1, int y1, int x2, int y2, int swipeDuration)`中的
+                // 原本这段代码是在`swipe(IDevice iDevice, int x1, int y1, int x2, int y2, int
+                // swipeDuration)`中的
                 // 但是swipe的效果应该是在屏幕滑动，而不是在第一个坐标按下时存在延迟，所以放在drag方法里面更加符合
                 int[] re1 = transferWithRotation(iDevice, x1, y1);
                 int[] re2 = transferWithRotation(iDevice, x2, y2);
@@ -203,10 +211,10 @@ public class AndroidTouchHandler {
                         writeToOutputStream(iDevice, String.format("move %d %d\n", re2[0], re2[1]));
                         break;
                     }
-                    BiFunction<Integer, Integer, Integer> transitionX = (start, end) ->
-                            (int) (start + (end - start) * timeProgress);
-                    BiFunction<Integer, Integer, Integer> transitionY = (start, end) ->
-                            (int) (start + (end - start) * timeProgress);
+                    BiFunction<Integer, Integer, Integer> transitionX = (start,
+                            end) -> (int) (start + (end - start) * timeProgress);
+                    BiFunction<Integer, Integer, Integer> transitionY = (start,
+                            end) -> (int) (start + (end - start) * timeProgress);
 
                     int currentX = transitionX.apply(re1[0], re2[0]);
                     int currentY = transitionY.apply(re1[1], re2[1]);
@@ -232,10 +240,12 @@ public class AndroidTouchHandler {
     public static void motionEvent(IDevice iDevice, String motionEventType, int x1, int y1) throws SonicRespException {
         switch (getTouchMode(iDevice)) {
             case ADB ->
-                    AndroidDeviceBridgeTool.executeCommand(iDevice, String.format("input motionevent %s %d %d", motionEventType, x1, y1));
+                AndroidDeviceBridgeTool.executeCommand(iDevice,
+                        String.format("input motionevent %s %d %d", motionEventType, x1, y1));
             case SONIC_APK -> {
                 int[] re1 = transferWithRotation(iDevice, x1, y1);
-                writeToOutputStream(iDevice, String.format("%s %d %d\n", motionEventType.toLowerCase(), re1[0], re1[1]));
+                writeToOutputStream(iDevice,
+                        String.format("%s %d %d\n", motionEventType.toLowerCase(), re1[0], re1[1]));
             }
             case APPIUM_UIAUTOMATOR2_SERVER -> {
                 AndroidStepHandler curStepHandler = HandlerMap.getAndroidMap().get(iDevice.getSerialNumber());
@@ -270,7 +280,7 @@ public class AndroidTouchHandler {
             _x = directionStatus == 2 ? width - x : x;
             _y = directionStatus == 2 ? height - y : y;
         }
-        return new int[]{_x, _y};
+        return new int[] { _x, _y };
     }
 
     public static void writeToOutputStream(IDevice iDevice, String msg) {
@@ -305,8 +315,9 @@ public class AndroidTouchHandler {
 
         Thread touchPro = new Thread(() -> {
             try {
-                iDevice.executeShellCommand(String.format("CLASSPATH=%s exec app_process /system/bin org.cloud.sonic.android.plugin.SonicPluginTouchService", path)
-                        , new IShellOutputReceiver() {
+                iDevice.executeShellCommand(String.format(
+                        "CLASSPATH=%s exec app_process /system/bin org.cloud.sonic.android.plugin.SonicPluginTouchService",
+                        path), new IShellOutputReceiver() {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
                                 String res = new String(bytes, i, i1);

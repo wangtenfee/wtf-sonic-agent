@@ -24,14 +24,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 @Configuration
 public class ResourceConfig extends WebMvcConfigurationSupport {
 
-    @Override
-    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**").addResourceLocations(
-                "classpath:/static/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations(
-                "classpath:/META-INF/resources/webjars/");
-        registry.addResourceHandler("/download/**")
-                .addResourceLocations("file:///" + System.getProperty("user.dir") + "/plugins/");
-        super.addResourceHandlers(registry);
-    }
+        @Override
+        protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+                registry.addResourceHandler("/static/**").addResourceLocations(
+                                "classpath:/static/");
+                registry.addResourceHandler("/webjars/**").addResourceLocations(
+                                "classpath:/META-INF/resources/webjars/");
+                registry.addResourceHandler("/download/**")
+                                .addResourceLocations("file:///" + System.getProperty("user.dir") + "/plugins/");
+                super.addResourceHandlers(registry);
+        }
 }

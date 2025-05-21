@@ -17,8 +17,13 @@
  */
 package org.cloud.sonic.agent.tests.android.minicap;
 
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.Session;
+import static org.cloud.sonic.agent.tools.BytesTool.subByteArray;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.maps.ScreenMap;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
@@ -26,12 +31,9 @@ import org.cloud.sonic.agent.tools.PortTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
+import com.android.ddmlib.IDevice;
 
-import static org.cloud.sonic.agent.tools.BytesTool.subByteArray;
+import jakarta.websocket.Session;
 
 /**
  * minicap socket线程
@@ -59,7 +61,8 @@ public class MiniCapInputSocketThread extends Thread {
 
     private Session session;
 
-    public MiniCapInputSocketThread(IDevice iDevice, BlockingQueue<byte[]> dataQueue, MiniCapLocalThread miniCapPro, Session session) {
+    public MiniCapInputSocketThread(IDevice iDevice, BlockingQueue<byte[]> dataQueue, MiniCapLocalThread miniCapPro,
+            Session session) {
         this.iDevice = iDevice;
         this.dataQueue = dataQueue;
         this.miniCapPro = miniCapPro;
@@ -143,4 +146,3 @@ public class MiniCapInputSocketThread extends Thread {
         }
     }
 }
-

@@ -17,10 +17,21 @@
  */
 package org.cloud.sonic.agent.bridge.android;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.*;
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.cloud.sonic.agent.common.enums.AndroidKey;
 import org.cloud.sonic.agent.common.maps.AndroidThreadMap;
 import org.cloud.sonic.agent.common.maps.AndroidWebViewMap;
@@ -40,27 +51,36 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.CollectingOutputReceiver;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.InstallException;
+import com.android.ddmlib.InstallReceiver;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author ZhouYiXun
  * @des ADB工具类
  * @date 2021/08/16 19:26
  */
-@DependsOn({"androidThreadPoolInit"})
+@DependsOn({ "androidThreadPoolInit" })
 @Component
 @Slf4j
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
@@ -80,7 +100,6 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
 
     @Autowired
     private AndroidDeviceStatusListener androidDeviceStatusListener;
-
 
     @Override
     public void onApplicationEvent(@NonNull ContextRefreshedEvent event) {
@@ -114,14 +133,15 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         apkVersion = ver;
         uiaApkVersion = uiaVer;
         restTemplate = restTemplateBean;
-        //获取系统SDK路径
+        // 获取系统SDK路径
         String systemADBPath = getADBPathFromSystemEnv();
-        //添加设备上下线监听
+        // 添加设备上下线监听
         AndroidDebugBridge.addDeviceChangeListener(androidDeviceStatusListener);
         try {
             AndroidDebugBridge.init(false);
-            //开始创建ADB
-            androidDebugBridge = AndroidDebugBridge.createBridge(systemADBPath, true, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            // 开始创建ADB
+            androidDebugBridge = AndroidDebugBridge.createBridge(systemADBPath, true, Long.MAX_VALUE,
+                    TimeUnit.MILLISECONDS);
             if (androidDebugBridge != null) {
                 log.info("Android devices listening...");
             }
@@ -129,7 +149,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
             log.warn("AndroidDebugBridge has been init!");
         }
         int count = 0;
-        //获取设备列表，超时后退出
+        // 获取设备列表，超时后退出
         while (!androidDebugBridge.hasInitialDeviceList()) {
             try {
                 Thread.sleep(1000);
@@ -145,8 +165,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                 new AndroidBatteryThread(),
                 AndroidBatteryThread.DELAY,
                 AndroidBatteryThread.DELAY,
-                AndroidBatteryThread.TIME_UNIT
-        );
+                AndroidBatteryThread.TIME_UNIT);
     }
 
     /**
@@ -196,7 +215,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
             return null;
         }
         for (IDevice device : iDevices) {
-            //如果设备是在线状态并且序列号相等，则就是这个设备
+            // 如果设备是在线状态并且序列号相等，则就是这个设备
             if (device.getState().equals(IDevice.DeviceState.ONLINE)
                     && device.getSerialNumber().equals(udId)) {
                 iDevice = device;
@@ -225,7 +244,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
             } else {
                 size = size.split(":")[1];
             }
-            //注意顺序问题
+            // 注意顺序问题
             size = size.trim()
                     .replace(":", "")
                     .replace("Override size", "")
@@ -254,8 +273,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         try {
             iDevice.executeShellCommand(command, output, 0, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            log.info("Send shell command {} to device {} failed."
-                    , command, iDevice.getSerialNumber());
+            log.info("Send shell command {} to device {} failed.", command, iDevice.getSerialNumber());
             log.error(e.getMessage());
         }
         return output.getOutput();
@@ -264,14 +282,12 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
     public static void install(IDevice iDevice, String path) throws InstallException {
         try {
             iDevice.installPackage(path,
-                    true, new InstallReceiver(), 180L, 180L, TimeUnit.MINUTES
-                    , "-r", "-t", "-g");
+                    true, new InstallReceiver(), 180L, 180L, TimeUnit.MINUTES, "-r", "-t", "-g");
         } catch (InstallException e) {
             log.info("{} install failed, cause {}, retry...", path, e.getMessage());
             try {
                 iDevice.installPackage(path,
-                        true, new InstallReceiver(), 180L, 180L, TimeUnit.MINUTES
-                        , "-r", "-t");
+                        true, new InstallReceiver(), 180L, 180L, TimeUnit.MINUTES, "-r", "-t");
             } catch (InstallException e2) {
                 log.info("{} install failed, cause {}, retry...", path, e2.getMessage());
                 try {
@@ -378,19 +394,22 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
      * @des 推送文件
      * @date 2021/8/16 19:59
      */
-//    public static void pushLocalFile(IDevice iDevice, String localPath, String remotePath) {
-//        AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
-//            //使用iDevice的pushFile方法好像有bug，暂时用命令行去推送
-//            ProcessBuilder pb = new ProcessBuilder(new String[]{getADBPathFromSystemEnv(), "-s", iDevice.getSerialNumber(), "push", localPath, remotePath});
-//            pb.redirectErrorStream(true);
-//            try {
-//                pb.start();
-//            } catch (IOException e) {
-//                log.error(e.getMessage());
-//                return;
-//            }
-//        });
-//    }
+    // public static void pushLocalFile(IDevice iDevice, String localPath, String
+    // remotePath) {
+    // AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
+    // //使用iDevice的pushFile方法好像有bug，暂时用命令行去推送
+    // ProcessBuilder pb = new ProcessBuilder(new
+    // String[]{getADBPathFromSystemEnv(), "-s", iDevice.getSerialNumber(), "push",
+    // localPath, remotePath});
+    // pb.redirectErrorStream(true);
+    // try {
+    // pb.start();
+    // } catch (IOException e) {
+    // log.error(e.getMessage());
+    // return;
+    // }
+    // });
+    // }
 
     /**
      * @param iDevice
@@ -462,14 +481,17 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         try {
             switch (type) {
                 case "abort" ->
-                        executeCommand(iDevice, "content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0");
+                    executeCommand(iDevice,
+                            "content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0");
                 case "add" -> {
                     if (p == 3) {
                         p = 0;
                     } else {
                         p++;
                     }
-                    executeCommand(iDevice, "content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:" + p);
+                    executeCommand(iDevice,
+                            "content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:"
+                                    + p);
                 }
                 case "sub" -> {
                     if (p == 0) {
@@ -477,7 +499,9 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     } else {
                         p--;
                     }
-                    executeCommand(iDevice, "content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:" + p);
+                    executeCommand(iDevice,
+                            "content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:"
+                                    + p);
                 }
             }
         } catch (Exception e) {
@@ -526,7 +550,8 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     Pattern pattern = Pattern.compile(patten);
                     Matcher m = pattern.matcher(window);
                     while (m.find()) {
-                        if (m.groupCount() != 4) break;
+                        if (m.groupCount() != 4)
+                            break;
                         offsetx = Integer.parseInt(m.group(1));
                         offsety = Integer.parseInt(m.group(2));
                         width = Integer.parseInt(m.group(3));
@@ -548,7 +573,7 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                 }
             }
         }
-        return new int[]{offsetx, offsety, width, height};
+        return new int[] { offsetx, offsety, width, height };
     }
 
     public static String getCurrentPackage(IDevice iDevice) {
@@ -603,7 +628,9 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         try {
             File image = DownloadTool.download(url);
             iDevice.pushFile(image.getAbsolutePath(), "/sdcard/DCIM/Camera/" + image.getName());
-            executeCommand(iDevice, "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/DCIM/Camera/" + image.getName());
+            executeCommand(iDevice,
+                    "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/DCIM/Camera/"
+                            + image.getName());
         } catch (IOException | AdbCommandRejectedException | SyncException | TimeoutException e) {
             e.printStackTrace();
         }
@@ -637,11 +664,12 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         }
         try {
             Process process = null;
-            String command = String.format("%s -s %s pull %s %s", getADBPathFromSystemEnv(), iDevice.getSerialNumber(), path, file.getAbsolutePath());
+            String command = String.format("%s -s %s pull %s %s", getADBPathFromSystemEnv(), iDevice.getSerialNumber(),
+                    path, file.getAbsolutePath());
             if (system.contains("win")) {
-                process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", command});
+                process = Runtime.getRuntime().exec(new String[] { "cmd", "/c", command });
             } else if (system.contains("linux") || system.contains("mac")) {
-                process = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
+                process = Runtime.getRuntime().exec(new String[] { "sh", "-c", command });
             }
             GlobalProcessMap.getMap().put(processName, process);
             boolean isRunning;
@@ -669,7 +697,8 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     break;
                 }
             } while (isRunning);
-            File re = new File(filename + File.separator + (path.lastIndexOf("/") == -1 ? path : path.substring(path.lastIndexOf("/"))));
+            File re = new File(filename + File.separator
+                    + (path.lastIndexOf("/") == -1 ? path : path.substring(path.lastIndexOf("/"))));
             result = UploadTools.upload(re, "packageFiles");
         } catch (Exception e) {
             e.printStackTrace();
@@ -764,7 +793,8 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         public void run() {
             forward(iDevice, port, 6790);
             try {
-                iDevice.executeShellCommand("am instrument -w io.appium.uiautomator2.server.test/androidx.test.runner.AndroidJUnitRunner -e DISABLE_SUPPRESS_ACCESSIBILITY_SERVICES true -e disableAnalytics true",
+                iDevice.executeShellCommand(
+                        "am instrument -w io.appium.uiautomator2.server.test/androidx.test.runner.AndroidJUnitRunner -e DISABLE_SUPPRESS_ACCESSIBILITY_SERVICES true -e disableAnalytics true",
                         new IShellOutputReceiver() {
                             @Override
                             public void addOutput(byte[] bytes, int i, int i1) {
@@ -903,8 +933,10 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                 if (greaterThen114) {
                     system = "mac-arm64";
                 } else {
-                    String driverList = restTemplate.exchange(String.format("https://registry.npmmirror.com/-/binary/chromedriver/%s/",
-                            ChromeDriverMap.getMap().get(majorChromeVersion)), HttpMethod.GET, new HttpEntity(headers), String.class).getBody();
+                    String driverList = restTemplate.exchange(
+                            String.format("https://registry.npmmirror.com/-/binary/chromedriver/%s/",
+                                    ChromeDriverMap.getMap().get(majorChromeVersion)),
+                            HttpMethod.GET, new HttpEntity(headers), String.class).getBody();
                     boolean findM1ChromeDriver = false;
                     for (Object obj : JSONArray.parseArray(driverList)) {
                         JSONObject jsonObject = JSONObject.parseObject(obj.toString());
@@ -930,8 +962,10 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         }
         File file;
         if (greaterThen114) {
-            // Starting with M115 the ChromeDriver release process is integrated with that of Chrome.
-            // The latest Chrome + ChromeDriver releases per release channel (Stable, Beta, Dev, Canary) are available
+            // Starting with M115 the ChromeDriver release process is integrated with that
+            // of Chrome.
+            // The latest Chrome + ChromeDriver releases per release channel (Stable, Beta,
+            // Dev, Canary) are available
             // at the Chrome for Testing (CfT) availability dashboard.
             file = DownloadTool.download(String.format(
                     "https://storage.googleapis.com/chrome-for-testing-public/%s/%s/chromedriver-%s.zip",
@@ -971,8 +1005,9 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                 JSONObject r = new JSONObject();
                 r.put("port", port);
                 try {
-                    ResponseEntity<LinkedHashMap> infoEntity =
-                            restTemplate.exchange("http://localhost:" + port + "/json/version", HttpMethod.GET, new HttpEntity(headers), LinkedHashMap.class);
+                    ResponseEntity<LinkedHashMap> infoEntity = restTemplate.exchange(
+                            "http://localhost:" + port + "/json/version", HttpMethod.GET, new HttpEntity(headers),
+                            LinkedHashMap.class);
                     if (infoEntity.getStatusCode() == HttpStatus.OK) {
                         r.put("version", infoEntity.getBody().get("Browser"));
                         r.put("package", infoEntity.getBody().get("Android-Package"));
@@ -981,8 +1016,9 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
                     continue;
                 }
                 try {
-                    ResponseEntity<JSONArray> responseEntity =
-                            restTemplate.exchange("http://localhost:" + port + "/json/list", HttpMethod.GET, new HttpEntity(headers), JSONArray.class);
+                    ResponseEntity<JSONArray> responseEntity = restTemplate.exchange(
+                            "http://localhost:" + port + "/json/list", HttpMethod.GET, new HttpEntity(headers),
+                            JSONArray.class);
                     if (responseEntity.getStatusCode() == HttpStatus.OK) {
                         List<JSONObject> child = new ArrayList<>();
                         for (Object e : responseEntity.getBody()) {

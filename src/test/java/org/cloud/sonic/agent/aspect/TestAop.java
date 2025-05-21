@@ -1,9 +1,9 @@
 package org.cloud.sonic.agent.aspect;
 
-
-import com.alibaba.fastjson.JSONObject;
 import org.cloud.sonic.agent.common.models.HandleContext;
 import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSONObject;
 
 @Component
 public class TestAop {

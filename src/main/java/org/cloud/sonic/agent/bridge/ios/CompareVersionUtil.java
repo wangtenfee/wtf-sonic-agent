@@ -17,19 +17,23 @@ public class CompareVersionUtil {
         int index = 0;
         for (; index < v1.length && index < v2.length; index++) {
             int v1n = Integer.parseInt(v1[index]), v2n = Integer.parseInt(v2[index]);
-            if (v1n > v2n) return 1;
-            if (v1n < v2n) return -1;
+            if (v1n > v2n)
+                return 1;
+            if (v1n < v2n)
+                return -1;
         }
         if (index < v1.length) {
             for (; index < v1.length; index++) {
                 int v1n = Integer.parseInt(v1[index]);
-                if (v1n > 0) return 1;
+                if (v1n > 0)
+                    return 1;
             }
         }
         if (index < v2.length) {
             for (; index < v2.length; index++) {
                 int v2n = Integer.parseInt(v2[index]);
-                if (v2n > 0) return -1;
+                if (v2n > 0)
+                    return -1;
             }
         }
         return 0;

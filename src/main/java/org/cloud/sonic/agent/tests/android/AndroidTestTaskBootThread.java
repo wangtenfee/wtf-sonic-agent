@@ -17,8 +17,8 @@
  */
 package org.cloud.sonic.agent.tests.android;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
+import java.util.concurrent.Semaphore;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import org.cloud.sonic.agent.common.interfaces.ResultDetailStatus;
@@ -29,7 +29,8 @@ import org.cloud.sonic.agent.tests.handlers.AndroidTouchHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Semaphore;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
 
 /**
  * android启动各个子任务的线程
@@ -116,8 +117,8 @@ public class AndroidTestTaskBootThread extends Thread {
         this.jsonObject = jsonObject;
         this.resultId = jsonObject.getInteger("rid") == null ? 0 : jsonObject.getInteger("rid");
         this.caseId = jsonObject.getInteger("cid") == null ? 0 : jsonObject.getInteger("cid");
-        this.udId = jsonObject.getJSONObject("device") == null ? jsonObject.getString("udId") :
-                jsonObject.getJSONObject("device").getString("udId");
+        this.udId = jsonObject.getJSONObject("device") == null ? jsonObject.getString("udId")
+                : jsonObject.getJSONObject("device").getString("udId");
 
         // 比如：test-task-thread-af80d1e4
         this.setName(String.format(ANDROID_TEST_TASK_BOOT_PRE, resultId, caseId, udId));
@@ -219,7 +220,7 @@ public class AndroidTestTaskBootThread extends Thread {
                 return;
             }
 
-            //电量过低退出测试
+            // 电量过低退出测试
             if (androidStepHandler.getBattery()) {
                 androidStepHandler.closeAndroidDriver();
                 androidMonitorHandler.stopMonitor(iDevice);
@@ -228,16 +229,15 @@ public class AndroidTestTaskBootThread extends Thread {
                 return;
             }
 
-            //正常运行步骤的线程
+            // 正常运行步骤的线程
             runStepThread = new AndroidRunStepThread(this);
-            //性能数据获取线程
+            // 性能数据获取线程
             perfDataThread = new AndroidPerfDataThread(this);
-            //录像线程
+            // 录像线程
             recordThread = new AndroidRecordThread(this);
             TaskManager.startChildThread(this.getName(), runStepThread, perfDataThread, recordThread);
 
-
-            //等待两个线程结束了才结束方法
+            // 等待两个线程结束了才结束方法
             while ((recordThread.isAlive()) || (runStepThread.isAlive())) {
                 Thread.sleep(1000);
             }

@@ -1,11 +1,12 @@
 package org.cloud.sonic.agent.bridge.android;
 
-import jakarta.annotation.PreDestroy;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import jakarta.annotation.PreDestroy;
 
 /**
  * @author ZhouYiXun

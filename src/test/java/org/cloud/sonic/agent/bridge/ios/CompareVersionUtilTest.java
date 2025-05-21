@@ -1,9 +1,9 @@
 package org.cloud.sonic.agent.bridge.ios;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by fengbincao on 2024/08/19

@@ -17,22 +17,28 @@
  */
 package org.cloud.sonic.agent.tests.ios.mjpeg;
 
-import lombok.extern.slf4j.Slf4j;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * ***************************************************************************
  * This code is built with reference to Swebcam-capture
  *
  * @see {https://github.com/sarxos/webcam-capture/blob/master/webcam-capture/src/main/java/com/github/sarxos/webcam/util/MjpegInputStream.java}
- * ***************************************************************************
+ *      ***************************************************************************
  */
 @Slf4j
 public class MjpegInputStream extends DataInputStream {
-    private final byte[] SOI_MARKER = {(byte) 0xFF, (byte) 0xD8};
-    private final byte[] EOI_MARKER = {(byte) 0xFF, (byte) 0xD9};
+    private final byte[] SOI_MARKER = { (byte) 0xFF, (byte) 0xD8 };
+    private final byte[] EOI_MARKER = { (byte) 0xFF, (byte) 0xD9 };
     private final String CONTENT_LENGTH = "Content-Length".toLowerCase();
     private final static int HEADER_MAX_LENGTH = 100;
     private final static int FRAME_MAX_LENGTH = 1024 * 5 + HEADER_MAX_LENGTH;
@@ -71,7 +77,8 @@ public class MjpegInputStream extends DataInputStream {
         int result = 0;
         while (true) {
             try {
-                if ((line = br.readLine()) == null) break;
+                if ((line = br.readLine()) == null)
+                    break;
             } catch (IOException e) {
                 log.info(e.getMessage());
                 break;

@@ -1,13 +1,13 @@
 package org.cloud.sonic.agent.common.maps;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 /**
  * 设备逻辑锁 Map
@@ -20,7 +20,7 @@ public class DevicesLockMap {
     private final static Logger logger = LoggerFactory.getLogger(DevicesLockMap.class);
 
     /**
-     * key: udId（设备序列号）   value: Semaphore
+     * key: udId（设备序列号） value: Semaphore
      */
     private static Map<String, Semaphore> devicesLockMap = new ConcurrentHashMap<>();
 
@@ -38,9 +38,9 @@ public class DevicesLockMap {
      * 用设备序列号上锁（可设置超时）
      *
      * @param udId     设备序列号
-     * @param timeOut  获取锁超时时间    此参数必须和 timeUnit 同时存在
-     * @param timeUnit 时间单位         此参数必须和 timeOut 同时存在
-     * @return true: 上锁成功   false: 上锁失败
+     * @param timeOut  获取锁超时时间 此参数必须和 timeUnit 同时存在
+     * @param timeUnit 时间单位 此参数必须和 timeOut 同时存在
+     * @return true: 上锁成功 false: 上锁失败
      */
     public static boolean lockByUdId(String udId, Long timeOut, TimeUnit timeUnit) throws InterruptedException {
         // 校验参数
@@ -48,8 +48,7 @@ public class DevicesLockMap {
         if (timeOut != null || timeUnit != null) {
             Assert.isTrue(
                     timeOut != null && timeUnit != null,
-                    "timeOut and timeUnit must not be null at the same time"
-            );
+                    "timeOut and timeUnit must not be null at the same time");
         }
         Semaphore deviceLock;
 

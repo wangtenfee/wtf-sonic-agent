@@ -17,13 +17,16 @@
  */
 package org.cloud.sonic.agent.transport;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.InstallException;
-import jakarta.websocket.Session;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import org.cloud.sonic.agent.bridge.android.AndroidSupplyTool;
@@ -32,7 +35,15 @@ import org.cloud.sonic.agent.bridge.ios.SibTool;
 import org.cloud.sonic.agent.common.enums.AndroidKey;
 import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
 import org.cloud.sonic.agent.common.interfaces.PlatformType;
-import org.cloud.sonic.agent.common.maps.*;
+import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
+import org.cloud.sonic.agent.common.maps.AndroidPasswordMap;
+import org.cloud.sonic.agent.common.maps.AndroidThreadMap;
+import org.cloud.sonic.agent.common.maps.DevicesLockMap;
+import org.cloud.sonic.agent.common.maps.HandlerMap;
+import org.cloud.sonic.agent.common.maps.IOSDeviceManagerMap;
+import org.cloud.sonic.agent.common.maps.IOSProcessMap;
+import org.cloud.sonic.agent.common.maps.OccupyMap;
+import org.cloud.sonic.agent.common.maps.WebSocketSessionMap;
 import org.cloud.sonic.agent.tests.AndroidTests;
 import org.cloud.sonic.agent.tests.IOSTests;
 import org.cloud.sonic.agent.tests.SuiteListener;
@@ -43,7 +54,11 @@ import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
 import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
 import org.cloud.sonic.agent.tests.ios.IOSRunStepThread;
 import org.cloud.sonic.agent.tests.ios.IOSTestTaskBootThread;
-import org.cloud.sonic.agent.tools.*;
+import org.cloud.sonic.agent.tools.AgentManagerTool;
+import org.cloud.sonic.agent.tools.BytesTool;
+import org.cloud.sonic.agent.tools.PHCTool;
+import org.cloud.sonic.agent.tools.ScheduleTool;
+import org.cloud.sonic.agent.tools.SpringTool;
 import org.cloud.sonic.driver.common.tool.SonicRespException;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -52,11 +67,14 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.InstallException;
+
+import jakarta.websocket.Session;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TransportClient extends WebSocketClient {
@@ -185,7 +203,8 @@ public class TransportClient extends WebSocketClient {
                 }
                 case "stopDebug" -> {
                     String udId = jsonObject.getString("udId");
-                    List<String> sessionList = Arrays.asList("AndroidWSServer", "AndroidTerminalWSServer", "AndroidScreenWSServer",
+                    List<String> sessionList = Arrays.asList("AndroidWSServer", "AndroidTerminalWSServer",
+                            "AndroidScreenWSServer",
                             "AudioWSServer", "IOSWSServer", "IOSTerminalWSServer", "IOSScreenWSServer");
                     for (String ss : sessionList) {
                         Session session = WebSocketSessionMap.getSession(String.format("%s-%s", ss, udId));
@@ -260,7 +279,8 @@ public class TransportClient extends WebSocketClient {
                             if (status != null) {
                                 AndroidDeviceLocalStatus.send(d.getSerialNumber(), status);
                             } else {
-                                AndroidDeviceLocalStatus.send(d.getSerialNumber(), d.getState() == null ? null : d.getState().toString());
+                                AndroidDeviceLocalStatus.send(d.getSerialNumber(),
+                                        d.getState() == null ? null : d.getState().toString());
                             }
                         }
                         List<String> udIds = SibTool.getDeviceList();
@@ -319,7 +339,7 @@ public class TransportClient extends WebSocketClient {
                     TestNG tng = new TestNG();
                     List<XmlSuite> suiteList = new ArrayList<>();
                     XmlSuite xmlSuite = new XmlSuite();
-                    //bug?
+                    // bug?
                     for (JSONObject dataInfo : cases) {
                         XmlTest xmlTest = new XmlTest(xmlSuite);
                         Map<String, String> parameters = new HashMap<>();
@@ -453,7 +473,7 @@ public class TransportClient extends WebSocketClient {
 
     }
 
-    private void debugIOSStep(JSONObject jsonObject){
+    private void debugIOSStep(JSONObject jsonObject) {
 
     }
 

@@ -17,7 +17,8 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.alibaba.fastjson.JSONObject;
+import java.util.List;
+
 import org.cloud.sonic.agent.aspect.IteratorCheck;
 import org.cloud.sonic.agent.common.enums.ConditionEnum;
 import org.cloud.sonic.agent.common.interfaces.StepType;
@@ -26,7 +27,7 @@ import org.cloud.sonic.agent.tests.RunStepThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * else 条件步骤
@@ -42,7 +43,8 @@ public class ElseHandler implements StepHandler {
 
     @Override
     @IteratorCheck
-    public HandleContext runStep(JSONObject stepJSON, HandleContext handleContext, RunStepThread thread) throws Throwable {
+    public HandleContext runStep(JSONObject stepJSON, HandleContext handleContext, RunStepThread thread)
+            throws Throwable {
         if (thread.isStopped()) {
             return null;
         }

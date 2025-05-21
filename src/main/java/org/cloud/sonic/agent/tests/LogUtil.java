@@ -17,8 +17,10 @@
  */
 package org.cloud.sonic.agent.tests;
 
-import com.alibaba.fastjson.JSONObject;
-import jakarta.websocket.Session;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
 import org.cloud.sonic.agent.common.interfaces.StepType;
 import org.cloud.sonic.agent.common.maps.WebSocketSessionMap;
@@ -26,9 +28,9 @@ import org.cloud.sonic.agent.transport.TransportWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.alibaba.fastjson.JSONObject;
+
+import jakarta.websocket.Session;
 
 /**
  * @author ZhouYiXun
@@ -51,7 +53,7 @@ public class LogUtil {
      * @date 2021/8/16 19:57
      */
     public void send(JSONObject message) {
-        //先加上消息附带信息
+        // 先加上消息附带信息
         message.put("cid", caseId);
         message.put("rid", resultId);
         message.put("udId", udId);
@@ -185,13 +187,13 @@ public class LogUtil {
      * @des 发送日志数据
      * @date 2021/8/26 19:58
      */
-//    public void sendSelfLog(String fileName, String url) {
-//        JSONObject log = new JSONObject();
-//        log.put("msg", "log");
-//        log.put("name", fileName);
-//        log.put("url", url);
-//        send(log);
-//    }
+    // public void sendSelfLog(String fileName, String url) {
+    // JSONObject log = new JSONObject();
+    // log.put("msg", "log");
+    // log.put("name", fileName);
+    // log.put("url", url);
+    // send(log);
+    // }
 
     /**
      * @param status
@@ -221,14 +223,14 @@ public class LogUtil {
      * @des 发送安卓Info
      * @date 2021/8/16 19:59
      */
-    public void androidInfo(String platform, String version, String udId, String manufacturer, String model, String size) {
+    public void androidInfo(String platform, String version, String udId, String manufacturer, String model,
+            String size) {
         sendStepLog(StepType.INFO, "",
                 "设备操作系统：" + platform
                         + "<br>操作系统版本：" + version
                         + "<br>设备序列号：" + udId
                         + "<br>设备制造商：" + manufacturer
                         + "<br>设备型号：" + model
-                        + "<br>设备分辨率：" + size
-        );
+                        + "<br>设备分辨率：" + size);
     }
 }

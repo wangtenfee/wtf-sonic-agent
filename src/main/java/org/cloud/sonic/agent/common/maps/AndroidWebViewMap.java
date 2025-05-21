@@ -17,12 +17,12 @@
  */
 package org.cloud.sonic.agent.common.maps;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
 
 public class AndroidWebViewMap {
     private static Map<IDevice, List<JSONObject>> webViewForwardMap = new ConcurrentHashMap<>();

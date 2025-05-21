@@ -17,8 +17,13 @@
  */
 package org.cloud.sonic.agent.tests;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import static org.cloud.sonic.agent.tests.SuiteListener.runningTestsMap;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.cloud.sonic.agent.bridge.ios.SibTool;
 import org.cloud.sonic.agent.common.interfaces.DeviceStatus;
 import org.cloud.sonic.agent.tests.handlers.IOSStepHandler;
@@ -29,12 +34,8 @@ import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static org.cloud.sonic.agent.tests.SuiteListener.runningTestsMap;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author ZhouYiXun
@@ -66,7 +67,7 @@ public class IOSTests {
         }
         Object[][] testDataProvider = new Object[dataProvider.size()][];
         for (int i = 0; i < dataProvider.size(); i++) {
-            testDataProvider[i] = new Object[]{dataProvider.get(i)};
+            testDataProvider[i] = new Object[] { dataProvider.get(i) };
         }
         return testDataProvider;
     }

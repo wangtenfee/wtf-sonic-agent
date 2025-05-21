@@ -17,16 +17,18 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.Session;
-import org.cloud.sonic.agent.tools.BytesTool;
-import org.springframework.util.ObjectUtils;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.cloud.sonic.agent.tools.BytesTool;
+import org.springframework.util.ObjectUtils;
+
+import com.android.ddmlib.IDevice;
+
+import jakarta.websocket.Session;
 
 /**
  * @author JayWenStar

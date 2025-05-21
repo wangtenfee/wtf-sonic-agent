@@ -37,11 +37,12 @@ public class AndroidPermissionExtractor {
      * @return 解析出的权限列表
      */
     public static List<AndroidPermissionItem> extractPermissions(String dumpsysOutput, List<String> groupNames,
-                                                                 Boolean grantedState) {
+            Boolean grantedState) {
         List<AndroidPermissionItem> result = new ArrayList<>();
 
         for (String groupName : groupNames) {
-            Pattern groupPattern = Pattern.compile("^(\\s*" + Pattern.quote(groupName) + " permissions:[\\s\\S]+)", Pattern.MULTILINE);
+            Pattern groupPattern = Pattern.compile("^(\\s*" + Pattern.quote(groupName) + " permissions:[\\s\\S]+)",
+                    Pattern.MULTILINE);
             Matcher groupMatcher = groupPattern.matcher(dumpsysOutput);
 
             if (!groupMatcher.find()) {

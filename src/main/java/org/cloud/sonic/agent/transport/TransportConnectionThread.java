@@ -17,12 +17,14 @@
  */
 package org.cloud.sonic.agent.transport;
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
-import org.cloud.sonic.agent.tools.SpringTool;
-
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+
+import org.cloud.sonic.agent.tools.SpringTool;
+
+import com.alibaba.fastjson.JSONObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Eason

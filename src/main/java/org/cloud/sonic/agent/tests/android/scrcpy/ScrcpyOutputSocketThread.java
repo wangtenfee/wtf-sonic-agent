@@ -17,14 +17,15 @@
  */
 package org.cloud.sonic.agent.tests.android.scrcpy;
 
-import jakarta.websocket.Session;
+import static org.cloud.sonic.agent.tools.BytesTool.sendByte;
+
+import java.util.concurrent.BlockingQueue;
+
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.BlockingQueue;
-
-import static org.cloud.sonic.agent.tools.BytesTool.sendByte;
+import jakarta.websocket.Session;
 
 /**
  * 视频流输出线程
@@ -45,8 +46,7 @@ public class ScrcpyOutputSocketThread extends Thread {
 
     public ScrcpyOutputSocketThread(
             ScrcpyInputSocketThread scrcpyInputSocketThread,
-            Session session
-    ) {
+            Session session) {
         this.scrcpyInputSocketThread = scrcpyInputSocketThread;
         this.session = session;
         this.androidTestTaskBootThread = scrcpyInputSocketThread.getAndroidTestTaskBootThread();

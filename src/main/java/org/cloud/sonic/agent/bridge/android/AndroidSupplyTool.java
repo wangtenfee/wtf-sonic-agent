@@ -17,10 +17,14 @@
  */
 package org.cloud.sonic.agent.bridge.android;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import jakarta.websocket.Session;
-import lombok.extern.slf4j.Slf4j;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
 import org.cloud.sonic.agent.common.maps.GlobalProcessMap;
 import org.cloud.sonic.agent.tests.LogUtil;
 import org.cloud.sonic.agent.tools.BytesTool;
@@ -30,13 +34,11 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
+import jakarta.websocket.Session;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -45,6 +47,7 @@ public class AndroidSupplyTool implements ApplicationListener<ContextRefreshedEv
     private static final String sas = sasBinary.getAbsolutePath();
 
     private static final Map<String, Thread> perfmonThreads = new ConcurrentHashMap<>();
+
     @Override
     public void onApplicationEvent(@NonNull ContextRefreshedEvent event) {
         log.info("Enable sonic-android-supply Module");
@@ -116,7 +119,8 @@ public class AndroidSupplyTool implements ApplicationListener<ContextRefreshedEv
     public static void startPerfmon(String udId, String pkg, Session session, LogUtil logUtil, int interval) {
         stopPerfmon(udId); // 启动前先停止已有监控
         String processName = String.format("process-%s-perfmon", udId);
-        String commandLine = String.format("%s perfmon -s %s -r %d %s -j --sys-cpu --sys-mem --sys-network", sas, udId, interval, pkg.isEmpty() ? "" : "--proc-cpu --proc-fps --proc-mem --proc-threads -p " + pkg);
+        String commandLine = String.format("%s perfmon -s %s -r %d %s -j --sys-cpu --sys-mem --sys-network", sas, udId,
+                interval, pkg.isEmpty() ? "" : "--proc-cpu --proc-fps --proc-mem --proc-threads -p " + pkg);
 
         try {
             Process ps = executeCommand(commandLine);
@@ -149,9 +153,9 @@ public class AndroidSupplyTool implements ApplicationListener<ContextRefreshedEv
         Process process;
 
         if (system.contains("win")) {
-            process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", command});
+            process = Runtime.getRuntime().exec(new String[] { "cmd", "/c", command });
         } else if (system.contains("linux") || system.contains("mac")) {
-            process = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
+            process = Runtime.getRuntime().exec(new String[] { "sh", "-c", command });
         } else {
             throw new RuntimeException("Unsupported operating system: " + system);
         }

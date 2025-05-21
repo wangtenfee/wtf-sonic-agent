@@ -17,9 +17,9 @@
  */
 package org.cloud.sonic.agent.common.enums;
 
-import org.springframework.util.Assert;
-
 import java.util.stream.Stream;
+
+import org.springframework.util.Assert;
 
 /**
  * @author JayWenStar

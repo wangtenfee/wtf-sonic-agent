@@ -1,15 +1,5 @@
 package org.cloud.sonic.agent.transport;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StreamUtils;
-import org.springframework.web.client.RestTemplate;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -17,20 +7,39 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.client.RestTemplate;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * see https://www.cnblogs.com/xiaoqi/p/spring-boot-route.html
  */
 @Service
 public class RoutingDelegate {
 
-    public ResponseEntity<String> redirect(HttpServletRequest request, HttpServletResponse response, String routeUrl, String prefix) {
+    public ResponseEntity<String> redirect(HttpServletRequest request, HttpServletResponse response, String routeUrl,
+            String prefix) {
         try {
             String redirectUrl = createPredictUrl(request, routeUrl, prefix);
             RequestEntity requestEntity = createRequestEntity(request, redirectUrl);
             return route(requestEntity);
         } catch (Exception e) {
             if (e.getMessage().contains("{") && e.getMessage().contains("}")) {
-                return new ResponseEntity(JSON.parseObject(e.getMessage().substring(e.getMessage().indexOf("{"), e.getMessage().lastIndexOf("}") + 1)).toJSONString(), HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity(JSON.parseObject(
+                        e.getMessage().substring(e.getMessage().indexOf("{"), e.getMessage().lastIndexOf("}") + 1))
+                        .toJSONString(), HttpStatus.INTERNAL_SERVER_ERROR);
             } else {
                 JSONObject err = new JSONObject();
                 err.put("error", "-1");
@@ -50,8 +59,8 @@ public class RoutingDelegate {
                 (queryString != null ? "?" + queryString : "");
     }
 
-
-    private RequestEntity createRequestEntity(HttpServletRequest request, String url) throws URISyntaxException, IOException {
+    private RequestEntity createRequestEntity(HttpServletRequest request, String url)
+            throws URISyntaxException, IOException {
         String method = request.getMethod();
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         MultiValueMap<String, String> headers = parseRequestHeader(request);
@@ -63,7 +72,6 @@ public class RoutingDelegate {
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.exchange(requestEntity, String.class);
     }
-
 
     private byte[] parseRequestBody(HttpServletRequest request) throws IOException {
         InputStream inputStream = request.getInputStream();

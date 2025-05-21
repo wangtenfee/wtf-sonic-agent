@@ -17,13 +17,17 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.*;
-import jakarta.websocket.*;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import static org.cloud.sonic.agent.tools.BytesTool.sendText;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Calendar;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import javax.imageio.stream.FileImageOutputStream;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceLocalStatus;
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceThreadPool;
@@ -40,7 +44,11 @@ import org.cloud.sonic.agent.tests.TaskManager;
 import org.cloud.sonic.agent.tests.android.AndroidRunStepThread;
 import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
 import org.cloud.sonic.agent.tests.handlers.AndroidTouchHandler;
-import org.cloud.sonic.agent.tools.*;
+import org.cloud.sonic.agent.tools.AgentManagerTool;
+import org.cloud.sonic.agent.tools.BytesTool;
+import org.cloud.sonic.agent.tools.PortTool;
+import org.cloud.sonic.agent.tools.SGMTool;
+import org.cloud.sonic.agent.tools.ScheduleTool;
 import org.cloud.sonic.agent.tools.file.DownloadTool;
 import org.cloud.sonic.agent.tools.file.UploadTools;
 import org.cloud.sonic.agent.transport.TransportWorker;
@@ -49,15 +57,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.imageio.stream.FileImageOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.Calendar;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.InstallException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
 
-import static org.cloud.sonic.agent.tools.BytesTool.sendText;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -72,7 +87,7 @@ public class AndroidWSServer implements IAndroidWSServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("key") String secretKey,
-                       @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
+            @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
         if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
             log.info("Auth Failed!");
             return;
@@ -135,7 +150,8 @@ public class AndroidWSServer implements IAndroidWSServer {
 
         String currentIme = AndroidDeviceBridgeTool.executeCommand(iDevice, "settings get secure default_input_method");
         if (!currentIme.contains("org.cloud.sonic.android/.keyboard.SonicKeyboard")) {
-            AndroidDeviceBridgeTool.executeCommand(iDevice, "ime enable org.cloud.sonic.android/.keyboard.SonicKeyboard");
+            AndroidDeviceBridgeTool.executeCommand(iDevice,
+                    "ime enable org.cloud.sonic.android/.keyboard.SonicKeyboard");
             AndroidDeviceBridgeTool.executeCommand(iDevice, "ime set org.cloud.sonic.android/.keyboard.SonicKeyboard");
         }
     }
@@ -166,17 +182,22 @@ public class AndroidWSServer implements IAndroidWSServer {
         IDevice iDevice = udIdMap.get(session);
         switch (msg.getString("type")) {
             case "startPerfmon" ->
-                    AndroidSupplyTool.startPerfmon(iDevice.getSerialNumber(), msg.getString("bundleId"), session, null, 1000);
+                AndroidSupplyTool.startPerfmon(iDevice.getSerialNumber(), msg.getString("bundleId"), session, null,
+                        1000);
             case "stopPerfmon" -> AndroidSupplyTool.stopPerfmon(iDevice.getSerialNumber());
             case "startKeyboard" -> {
-                String currentIme = AndroidDeviceBridgeTool.executeCommand(iDevice, "settings get secure default_input_method");
+                String currentIme = AndroidDeviceBridgeTool.executeCommand(iDevice,
+                        "settings get secure default_input_method");
                 if (!currentIme.contains("org.cloud.sonic.android/.keyboard.SonicKeyboard")) {
-                    AndroidDeviceBridgeTool.executeCommand(iDevice, "ime enable org.cloud.sonic.android/.keyboard.SonicKeyboard");
-                    AndroidDeviceBridgeTool.executeCommand(iDevice, "ime set org.cloud.sonic.android/.keyboard.SonicKeyboard");
+                    AndroidDeviceBridgeTool.executeCommand(iDevice,
+                            "ime enable org.cloud.sonic.android/.keyboard.SonicKeyboard");
+                    AndroidDeviceBridgeTool.executeCommand(iDevice,
+                            "ime set org.cloud.sonic.android/.keyboard.SonicKeyboard");
                 }
             }
             case "stopKeyboard" ->
-                    AndroidDeviceBridgeTool.executeCommand(iDevice, "ime disable org.cloud.sonic.android/.keyboard.SonicKeyboard");
+                AndroidDeviceBridgeTool.executeCommand(iDevice,
+                        "ime disable org.cloud.sonic.android/.keyboard.SonicKeyboard");
             case "setPasteboard" -> AndroidDeviceBridgeTool.setClipperByKeyboard(iDevice, msg.getString("detail"));
             case "getPasteboard" -> {
                 JSONObject paste = new JSONObject();
@@ -200,7 +221,8 @@ public class AndroidWSServer implements IAndroidWSServer {
                 BytesTool.sendText(session, proxy.toJSONString());
             }
             case "installCert" -> AndroidDeviceBridgeTool.executeCommand(iDevice,
-                    String.format("am start -a android.intent.action.VIEW -d http://%s:%d/assets/download", getHost(), port));
+                    String.format("am start -a android.intent.action.VIEW -d http://%s:%d/assets/download", getHost(),
+                            port));
             case "forwardView" -> {
                 JSONObject forwardView = new JSONObject();
                 forwardView.put("msg", "forwardView");
@@ -246,8 +268,7 @@ public class AndroidWSServer implements IAndroidWSServer {
                 result.put("msg", "pushResult");
                 try {
                     File localFile = DownloadTool.download(msg.getString("file"));
-                    iDevice.pushFile(localFile.getAbsolutePath()
-                            , msg.getString("path"));
+                    iDevice.pushFile(localFile.getAbsolutePath(), msg.getString("path"));
                     result.put("status", "success");
                 } catch (IOException | AdbCommandRejectedException | SyncException | TimeoutException e) {
                     result.put("status", "fail");
@@ -259,7 +280,8 @@ public class AndroidWSServer implements IAndroidWSServer {
                 AndroidStepHandler androidStepHandler = HandlerMap.getAndroidMap().get(iDevice.getSerialNumber());
                 switch (msg.getString("detail")) {
                     case "poco" -> AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
-                        androidStepHandler.startPocoDriver(new HandleContext(), msg.getString("engine"), msg.getInteger("port"));
+                        androidStepHandler.startPocoDriver(new HandleContext(), msg.getString("engine"),
+                                msg.getInteger("port"));
                         JSONObject poco = new JSONObject();
                         try {
                             poco.put("result", androidStepHandler.getPocoDriver().getPageSourceForJsonString());
@@ -283,9 +305,7 @@ public class AndroidWSServer implements IAndroidWSServer {
                     }
                     case "stopStep" -> TaskManager.forceStopDebugStepThread(
                             AndroidRunStepThread.ANDROID_RUN_STEP_TASK_PRE.formatted(
-                                    0, msg.getInteger("caseId"), msg.getString("udId")
-                            )
-                    );
+                                    0, msg.getInteger("caseId"), msg.getString("udId")));
                     case "openApp" -> AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
                         AndroidDeviceBridgeTool.activateApp(iDevice, msg.getString("pkg"));
                     });
@@ -302,7 +322,8 @@ public class AndroidWSServer implements IAndroidWSServer {
                         String xy = msg.getString("point");
                         int x = Integer.parseInt(xy.substring(0, xy.indexOf(",")));
                         int y = Integer.parseInt(xy.substring(xy.indexOf(",") + 1));
-                        AndroidDeviceBridgeTool.executeCommand(iDevice, "input swipe " + x + " " + y + " " + x + " " + y + " 1500");
+                        AndroidDeviceBridgeTool.executeCommand(iDevice,
+                                "input swipe " + x + " " + y + " " + x + " " + y + " 1500");
                     }
                     case "swipe" -> {
                         String xy1 = msg.getString("pointA");
@@ -311,7 +332,8 @@ public class AndroidWSServer implements IAndroidWSServer {
                         int y1 = Integer.parseInt(xy1.substring(xy1.indexOf(",") + 1));
                         int x2 = Integer.parseInt(xy2.substring(0, xy2.indexOf(",")));
                         int y2 = Integer.parseInt(xy2.substring(xy2.indexOf(",") + 1));
-                        AndroidDeviceBridgeTool.executeCommand(iDevice, "input swipe " + x1 + " " + y1 + " " + x2 + " " + y2 + " 200");
+                        AndroidDeviceBridgeTool.executeCommand(iDevice,
+                                "input swipe " + x1 + " " + y1 + " " + x2 + " " + y2 + " 200");
                     }
                     case "install" -> AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
                         JSONObject result = new JSONObject();
@@ -346,9 +368,12 @@ public class AndroidWSServer implements IAndroidWSServer {
                                 try {
                                     JSONObject result = new JSONObject();
                                     JSONObject settings = new JSONObject();
-                                    settings.put("enableMultiWindows", msg.getBoolean("isMulti") != null && msg.getBoolean("isMulti"));
-                                    settings.put("ignoreUnimportantViews", msg.getBoolean("isIgnore") != null && msg.getBoolean("isIgnore"));
-                                    settings.put("allowInvisibleElements", msg.getBoolean("isVisible") != null && msg.getBoolean("isVisible"));
+                                    settings.put("enableMultiWindows",
+                                            msg.getBoolean("isMulti") != null && msg.getBoolean("isMulti"));
+                                    settings.put("ignoreUnimportantViews",
+                                            msg.getBoolean("isIgnore") != null && msg.getBoolean("isIgnore"));
+                                    settings.put("allowInvisibleElements",
+                                            msg.getBoolean("isVisible") != null && msg.getBoolean("isVisible"));
                                     androidStepHandler.getAndroidDriver().setAppiumSettings(settings);
                                     result.put("msg", "tree");
                                     result.put("detail", androidStepHandler.getResource());
@@ -374,9 +399,11 @@ public class AndroidWSServer implements IAndroidWSServer {
                                     if (!folder.exists()) {
                                         folder.mkdirs();
                                     }
-                                    File output = new File(folder + File.separator + iDevice.getSerialNumber() + Calendar.getInstance().getTimeInMillis() + ".png");
+                                    File output = new File(folder + File.separator + iDevice.getSerialNumber()
+                                            + Calendar.getInstance().getTimeInMillis() + ".png");
                                     try {
-                                        byte[] bt = androidStepHandler.findEle("xpath", msg.getString("xpath")).screenshot();
+                                        byte[] bt = androidStepHandler.findEle("xpath", msg.getString("xpath"))
+                                                .screenshot();
                                         FileImageOutputStream imageOutput = new FileImageOutputStream(output);
                                         imageOutput.write(bt, 0, bt.length);
                                         imageOutput.close();
@@ -411,7 +438,8 @@ public class AndroidWSServer implements IAndroidWSServer {
     private void openDriver(IDevice iDevice, Session session) {
         synchronized (session) {
             AndroidStepHandler androidStepHandler = new AndroidStepHandler();
-            androidStepHandler.setTestMode(0, 0, iDevice.getSerialNumber(), DeviceStatus.DEBUGGING, session.getUserProperties().get("id").toString());
+            androidStepHandler.setTestMode(0, 0, iDevice.getSerialNumber(), DeviceStatus.DEBUGGING,
+                    session.getUserProperties().get("id").toString());
             JSONObject result = new JSONObject();
             AndroidDeviceThreadPool.cachedThreadPool.execute(() -> {
                 try {

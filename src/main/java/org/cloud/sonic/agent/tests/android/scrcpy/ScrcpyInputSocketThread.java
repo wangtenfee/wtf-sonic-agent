@@ -17,9 +17,12 @@
  */
 package org.cloud.sonic.agent.tests.android.scrcpy;
 
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.Session;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.maps.ScreenMap;
 import org.cloud.sonic.agent.tests.android.AndroidTestTaskBootThread;
@@ -28,11 +31,10 @@ import org.cloud.sonic.agent.tools.PortTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+
+import jakarta.websocket.Session;
 
 /**
  * scrcpy socket线程
@@ -54,7 +56,8 @@ public class ScrcpyInputSocketThread extends Thread {
 
     private Session session;
 
-    public ScrcpyInputSocketThread(IDevice iDevice, BlockingQueue<byte[]> dataQueue, ScrcpyLocalThread scrcpyLocalThread, Session session) {
+    public ScrcpyInputSocketThread(IDevice iDevice, BlockingQueue<byte[]> dataQueue,
+            ScrcpyLocalThread scrcpyLocalThread, Session session) {
         this.iDevice = iDevice;
         this.dataQueue = dataQueue;
         this.scrcpyLocalThread = scrcpyLocalThread;
@@ -116,8 +119,7 @@ public class ScrcpyInputSocketThread extends Thread {
                         if (buffer[i] == 0x00 &&
                                 buffer[i + 1] == 0x00 &&
                                 buffer[i + 2] == 0x00 &&
-                                buffer[i + 3] == 0x01
-                        ) {
+                                buffer[i + 3] == 0x01) {
                             naLuIndex = i;
                             byte[] naluBuffer = new byte[naLuIndex];
                             System.arraycopy(buffer, 0, naluBuffer, 0, naLuIndex);
@@ -159,4 +161,3 @@ public class ScrcpyInputSocketThread extends Thread {
         }
     }
 }
-

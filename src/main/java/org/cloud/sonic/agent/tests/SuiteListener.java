@@ -17,14 +17,15 @@
  */
 package org.cloud.sonic.agent.tests;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.util.CollectionUtils;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
 
-import java.util.concurrent.ConcurrentHashMap;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * 测试套件监听器

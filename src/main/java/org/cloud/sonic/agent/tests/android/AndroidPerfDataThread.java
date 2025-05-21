@@ -17,10 +17,12 @@
  */
 package org.cloud.sonic.agent.tests.android;
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
 import org.cloud.sonic.agent.bridge.android.AndroidSupplyTool;
 import org.cloud.sonic.agent.tests.handlers.AndroidStepHandler;
+
+import com.alibaba.fastjson.JSONObject;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * android性能数据获取线程

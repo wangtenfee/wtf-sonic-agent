@@ -17,7 +17,6 @@
  */
 package org.cloud.sonic.agent.tests.handlers;
 
-import com.alibaba.fastjson.JSONObject;
 import org.cloud.sonic.agent.aspect.IteratorCheck;
 import org.cloud.sonic.agent.common.enums.ConditionEnum;
 import org.cloud.sonic.agent.common.interfaces.PlatformType;
@@ -26,6 +25,8 @@ import org.cloud.sonic.agent.tests.RunStepThread;
 import org.cloud.sonic.agent.tests.android.AndroidRunStepThread;
 import org.cloud.sonic.agent.tests.ios.IOSRunStepThread;
 import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * 非条件步骤
@@ -38,7 +39,8 @@ public class NoneConditionHandler implements StepHandler {
 
     @Override
     @IteratorCheck
-    public HandleContext runStep(JSONObject stepJSON, HandleContext handleContext, RunStepThread thread) throws Throwable {
+    public HandleContext runStep(JSONObject stepJSON, HandleContext handleContext, RunStepThread thread)
+            throws Throwable {
         if (thread.isStopped()) {
             return null;
         }
@@ -47,7 +49,8 @@ public class NoneConditionHandler implements StepHandler {
         switch (thread.getPlatformType()) {
             case PlatformType.ANDROID:
                 AndroidRunStepThread androidRunStepThread = (AndroidRunStepThread) thread;
-                AndroidStepHandler androidStepHandler = androidRunStepThread.getAndroidTestTaskBootThread().getAndroidStepHandler();
+                AndroidStepHandler androidStepHandler = androidRunStepThread.getAndroidTestTaskBootThread()
+                        .getAndroidStepHandler();
                 androidStepHandler.runStep(stepJSON, handleContext);
                 break;
             case PlatformType.IOS:

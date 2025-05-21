@@ -17,13 +17,12 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import jakarta.websocket.*;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.config.WsEndpointConfigure;
 import org.cloud.sonic.agent.common.maps.AndroidAPKMap;
@@ -38,11 +37,18 @@ import org.cloud.sonic.agent.tools.ScheduleTool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicReference;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
+
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -57,7 +63,7 @@ public class AndroidScreenWSServer implements IAndroidWSServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("key") String secretKey,
-                       @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
+            @PathParam("udId") String udId, @PathParam("token") String token) throws Exception {
         if (secretKey.length() == 0 || (!secretKey.equals(key)) || token.length() == 0) {
             log.info("Auth Failed!");
             return;
@@ -89,7 +95,7 @@ public class AndroidScreenWSServer implements IAndroidWSServer {
             exit(session);
         }
 
-        session.getUserProperties().put("schedule",ScheduleTool.schedule(() -> {
+        session.getUserProperties().put("schedule", ScheduleTool.schedule(() -> {
             log.info("time up!");
             if (session.isOpen()) {
                 JSONObject errMsg = new JSONObject();
@@ -155,14 +161,14 @@ public class AndroidScreenWSServer implements IAndroidWSServer {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-                while (ScreenMap.getMap().get(session) != null);
+                } while (ScreenMap.getMap().get(session) != null);
             }
             typeMap.putIfAbsent(iDevice.getSerialNumber(), "scrcpy");
             switch (typeMap.get(iDevice.getSerialNumber())) {
                 case "scrcpy" -> {
                     ScrcpyServerUtil scrcpyServerUtil = new ScrcpyServerUtil();
-                    Thread scrcpyThread = scrcpyServerUtil.start(iDevice.getSerialNumber(), AndroidDeviceManagerMap.getRotationMap().get(iDevice.getSerialNumber()), session);
+                    Thread scrcpyThread = scrcpyServerUtil.start(iDevice.getSerialNumber(),
+                            AndroidDeviceManagerMap.getRotationMap().get(iDevice.getSerialNumber()), session);
                     ScreenMap.getMap().put(session, scrcpyThread);
                 }
                 case "minicap" -> {
@@ -170,9 +176,9 @@ public class AndroidScreenWSServer implements IAndroidWSServer {
                     AtomicReference<String[]> banner = new AtomicReference<>(new String[24]);
                     Thread miniCapThread = miniCapUtil.start(
                             iDevice.getSerialNumber(), banner, null,
-                            picMap.get(iDevice.getSerialNumber()) == null ? "high" : picMap.get(iDevice.getSerialNumber()),
-                            AndroidDeviceManagerMap.getRotationMap().get(iDevice.getSerialNumber()), session
-                    );
+                            picMap.get(iDevice.getSerialNumber()) == null ? "high"
+                                    : picMap.get(iDevice.getSerialNumber()),
+                            AndroidDeviceManagerMap.getRotationMap().get(iDevice.getSerialNumber()), session);
                     ScreenMap.getMap().put(session, miniCapThread);
                 }
             }

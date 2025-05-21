@@ -1,11 +1,12 @@
 package org.cloud.sonic.agent.common.maps;
 
-import jakarta.websocket.Session;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import jakarta.websocket.Session;
 
 /**
  * @author ZhouYiXun
@@ -15,10 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketSessionMap {
 
     /**
-     * key: sessionId    value: session
+     * key: sessionId value: session
      */
     private static Map<String, Session> sessionMap = new ConcurrentHashMap<>();
-
 
     public static Map<String, Session> getSessionMap() {
         return sessionMap;

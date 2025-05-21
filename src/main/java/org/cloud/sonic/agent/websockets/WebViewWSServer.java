@@ -17,9 +17,10 @@
  */
 package org.cloud.sonic.agent.websockets;
 
-import jakarta.websocket.*;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.cloud.sonic.agent.common.config.WsEndpointConfigure;
 import org.cloud.sonic.agent.tools.BytesTool;
 import org.java_websocket.client.WebSocketClient;
@@ -29,9 +30,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.PathParam;
+import jakarta.websocket.server.ServerEndpoint;
 
 /**
  * @author ZhouYiXun
@@ -47,7 +52,8 @@ public class WebViewWSServer {
     private Map<Session, WebSocketClient> sessionWebSocketClientMap = new HashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("key") String secretKey, @PathParam("port") int port, @PathParam("id") String id) throws Exception {
+    public void onOpen(Session session, @PathParam("key") String secretKey, @PathParam("port") int port,
+            @PathParam("id") String id) throws Exception {
         if (secretKey.length() == 0 || (!secretKey.equals(key))) {
             logger.info("Auth Failed!");
             return;
