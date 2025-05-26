@@ -4,11 +4,15 @@
 # export JAVA_HOME=/path/to/java
 # export PATH=$JAVA_HOME/bin:$PATH
 
+#可选参数 [ "windows-x86", "windows-x86_64", "macosx-arm64", "macosx-x86_64", "linux-arm64", "linux-x86", "linux-x86_64" ]
+echo $1
+#可选参数 dev test
+echo $2
 # 设置JVM参数
-JVM_OPTS="-Dspring.profiles.active=test -Xms1500m -Xmx1500m -XX:ReservedCodeCacheSize=256m -XX:InitialCodeCacheSize=256m -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:ConcGCThreads=1 -XX:ParallelGCThreads=2 -XX:ZCollectionInterval=30 -XX:ZAllocationSpikeTolerance=5 -XX:+UnlockDiagnosticVMOptions -XX:-ZProactive -Xlog:gc:./gc-+HeapDumpOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./errorDump.hprof -Dfile.encoding=utf-8"
+JVM_OPTS="-Dspring.profiles.active=$2 -Xms1500m -Xmx1500m -XX:ReservedCodeCacheSize=256m -XX:InitialCodeCacheSize=256m -XX:+UnlockExperimentalVMOptions -XX:+UseZGC -XX:ConcGCThreads=1 -XX:ParallelGCThreads=2 -XX:ZCollectionInterval=30 -XX:ZAllocationSpikeTolerance=5 -XX:+UnlockDiagnosticVMOptions -XX:-ZProactive -Xlog:gc:./gc-+HeapDumpOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./errorDump.hprof -Dfile.encoding=utf-8"
 
 # 设置要运行的jar文件
-JAR_FILE="sonic-agent-windows-x86_64.jar"
+JAR_FILE="sonic-agent-$1.jar"
 
 # 检查jar文件是否存在
 if [ ! -f "$JAR_FILE" ]; then
